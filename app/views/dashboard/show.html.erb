@@ -1,6 +1,7 @@
 <% if @election.nil? %>
   <main class="wrap"><p>ยังไม่เปิดรายงานผล</p></main>
 <% else %>
+  <%= turbo_stream_from "results" %>
   <%= render "site_header", election: @election %>
   <%= render "hero", election: @election %>
   <main class="wrap" data-controller="live-flash fallback">

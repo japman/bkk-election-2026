@@ -29,6 +29,9 @@ class IngestPollJob < ApplicationJob
       end
     end
 
-    SnapshotPublisher.new(election).publish if changed
+    if changed
+      ResultsBroadcaster.new(election).broadcast_all
+      SnapshotPublisher.new(election).publish
+    end
   end
 end

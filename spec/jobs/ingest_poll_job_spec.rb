@@ -8,6 +8,8 @@ RSpec.describe IngestPollJob do
   before do
     allow(Ingest::Client).to receive(:fetch).and_return(raw)
     allow(SnapshotPublisher).to receive(:new).and_return(publisher)
+    allow(ResultsBroadcaster).to receive(:new)
+      .and_return(instance_double(ResultsBroadcaster, broadcast_all: true))
   end
 
   it "writes results and stats from the API payload, then publishes snapshot" do
