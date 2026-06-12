@@ -40,7 +40,7 @@ export default class extends Controller {
 
     this.element.innerHTML =
       [40, 80, 120, 160].map(y =>
-        `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#EEE8EF" stroke-width="1"/>`).join("") +
+        `<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="rgba(135,142,165,.25)" stroke-width="1"/>`).join("") +
       top3.map(c => {
         const pts = history.get(c.number) || []
         if (pts.length === 0) return ""

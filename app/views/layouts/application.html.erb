@@ -9,6 +9,15 @@
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
 
+    <script>
+      // ตั้งธีมก่อน paint แรก กันจอวาบ — ค่าที่ user เลือก > ค่าตามระบบ
+      (function() {
+        var theme = localStorage.getItem("theme")
+        if (!theme) theme = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+        document.documentElement.dataset.theme = theme
+      })()
+    </script>
+
     <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
