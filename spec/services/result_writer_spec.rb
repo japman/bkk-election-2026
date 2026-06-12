@@ -43,4 +43,14 @@ RSpec.describe ResultWriter do
     expect(zone.reload.zone_stat.turnout).to eq(500)
     expect(ResultRevision.last.recordable).to eq(zone.zone_stat)
   end
+
+  it "stores numerically-typed values symmetrically in stat revisions" do
+    ResultWriter.new(zone, source: "api")
+      .apply!({}, stats: { eligible_voters: 900, turnout: 500, bad_ballots: 4, no_vote: 6, counted_percent: 55.5 })
+    ResultWriter.new(zone, source: "api")
+      .apply!({}, stats: { eligible_voters: 900, turnout: 500, bad_ballots: 4, no_vote: 6, counted_percent: 60.0 })
+    rev = ResultRevision.order(:id).last.reload
+    expect(rev.old_values["counted_percent"]).to eq(55.5)
+    expect(rev.new_values["counted_percent"]).to eq(60.0)
+  end
 end

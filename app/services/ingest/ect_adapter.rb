@@ -18,6 +18,13 @@ module Ingest
         missing = expected_zone_codes - zones.map { |z| z["code"].to_s }
         errors << "missing zones: #{missing.join(', ')}" if missing.any?
 
+        codes = zones.map { |z| z["code"].to_s }
+        unexpected = codes.reject(&:empty?) - expected_zone_codes
+        errors << "unexpected zones: #{unexpected.join(', ')}" if unexpected.any?
+        errors << "zone with missing code" if codes.any?(&:empty?)
+        dupes = codes.tally.select { |_, n| n > 1 }.keys
+        errors << "duplicate zone codes: #{dupes.join(', ')}" if dupes.any?
+
         zones.each do |z|
           zone_errors = validate_zone(z, known_numbers)
           if zone_errors.any?

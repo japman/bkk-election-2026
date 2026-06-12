@@ -36,4 +36,16 @@ RSpec.describe Ingest::EctAdapter do
     expect(r).not_to be_ok
     expect(r.errors.join).to include("invalid JSON")
   end
+
+  it "rejects unexpected zone codes" do
+    r = parse(raw, codes: %w[01])
+    expect(r).not_to be_ok
+    expect(r.errors.join).to include("unexpected")
+  end
+
+  it "rejects zones with blank codes" do
+    bad = JSON.parse(raw)
+    bad["zones"][0].delete("code")
+    expect(parse(bad.to_json)).not_to be_ok
+  end
 end
