@@ -5,4 +5,8 @@ class Zone < ApplicationRecord
 
   validates :code, presence: true, uniqueness: { scope: :election_id }
   validates :name, :grid_col, :grid_row, presence: true
+
+  def leading_candidate
+    vote_results.order(votes: :desc).first&.candidate
+  end
 end
