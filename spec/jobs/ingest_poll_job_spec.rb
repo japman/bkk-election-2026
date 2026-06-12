@@ -19,10 +19,21 @@ RSpec.describe IngestPollJob do
     expect(publisher).to have_received(:publish)
   end
 
-  it "does not publish when nothing changed" do
+  it "publishes every successful poll so the fallback snapshot never goes stale" do
     described_class.perform_now
     described_class.perform_now
-    expect(publisher).to have_received(:publish).once
+    expect(publisher).to have_received(:publish).twice
+  end
+
+  it "still publishes the snapshot when broadcasting fails" do
+    allow(ResultsBroadcaster).to receive(:new)
+      .and_return(instance_double(ResultsBroadcaster).tap { |b|
+        allow(b).to receive(:broadcast_all).and_raise(RuntimeError, "cable down")
+      })
+    allow(Rails.logger).to receive(:error)
+    described_class.perform_now
+    expect(publisher).to have_received(:publish)
+    expect(Rails.logger).to have_received(:error).with(/broadcast failed/)
   end
 
   it "skips entirely when election is in manual mode (admin override)" do

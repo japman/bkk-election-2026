@@ -30,8 +30,14 @@ class IngestPollJob < ApplicationJob
     end
 
     if changed
-      ResultsBroadcaster.new(election).broadcast_all
-      SnapshotPublisher.new(election).publish
+      begin
+        ResultsBroadcaster.new(election).broadcast_all
+      rescue StandardError => e
+        Rails.logger.error("[ingest] broadcast failed: #{e.class} #{e.message}")
+      end
     end
+    # publish ทุกรอบที่ payload ผ่าน validation — กัน snapshot ค้างถาวรเมื่อ
+    # publish รอบก่อนพังหลัง write commit แล้ว (ราคา S3 PUT ทุก 30 วิ = จิ๊บจ๊อย)
+    SnapshotPublisher.new(election).publish
   end
 end
