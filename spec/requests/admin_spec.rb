@@ -57,5 +57,13 @@ RSpec.describe "Admin panel", type: :request do
       expect(response.body).to include("123")
       expect(response.body).to include("api")
     end
+
+    it "ignores unknown candidate numbers instead of failing the whole save" do
+      patch admin_zone_result_path(zone), params: {
+        confirm: "1", votes: { "1" => "777", "999" => "5", "abc" => "9" }
+      }
+      expect(response).to redirect_to(admin_root_path)
+      expect(zone.vote_results.sum(:votes)).to eq(777)
+    end
   end
 end

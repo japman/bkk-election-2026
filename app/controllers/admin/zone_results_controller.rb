@@ -17,6 +17,8 @@ class Admin::ZoneResultsController < ApplicationController
 
     votes = params.fetch(:votes, {}).permit!.to_h
       .transform_keys(&:to_i).transform_values(&:to_i)
+    known = election.candidates.pluck(:number)
+    votes = votes.select { |number, _| known.include?(number) }
     raw_stats = params[:stats]&.permit(:eligible_voters, :turnout, :bad_ballots,
                                        :no_vote, :counted_percent)
     stats = if raw_stats
