@@ -10,11 +10,12 @@ class Election < ApplicationRecord
 
   # ผู้สมัครทุกคน + total_votes (SUM สดจาก 50 เขต — ไม่เก็บซ้ำ ตาม spec §6)
   def leaderboard
-    candidates
+    @leaderboard ||= candidates
       .left_joins(:vote_results)
       .select("candidates.*, COALESCE(SUM(vote_results.votes), 0) AS total_votes")
       .group("candidates.id")
       .order("total_votes DESC, candidates.number ASC")
+      .to_a
   end
 
   def total_votes
