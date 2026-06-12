@@ -53,3 +53,12 @@ CANDIDATES.each do |number, name, party, color|
 end
 
 puts "Seeded: #{election.name} — #{election.zones.count} zones, #{election.candidates.count} candidates"
+
+if Rails.env.development?
+  User.find_or_create_by!(email_address: ENV.fetch("ADMIN_EMAIL", "admin@dailynews.local")) do |u|
+    u.password = ENV.fetch("ADMIN_PASSWORD", "election2026")
+  end
+  puts "Admin user: #{ENV.fetch('ADMIN_EMAIL', 'admin@dailynews.local')}"
+end
+# production: สร้าง admin ครั้งแรกด้วย
+#   bin/rails runner 'User.create!(email_address: ENV.fetch("ADMIN_EMAIL"), password: ENV.fetch("ADMIN_PASSWORD"))'

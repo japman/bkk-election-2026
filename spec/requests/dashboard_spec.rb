@@ -17,4 +17,10 @@ RSpec.describe "Dashboard", type: :request do
     get "/"
     expect(response.body).to include("ยังไม่เปิดรายงานผล")
   end
+
+  it "is publicly accessible without login" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response).to have_http_status(:ok)
+  end
 end
