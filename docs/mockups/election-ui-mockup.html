@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>เลือกตั้งผู้ว่าฯ กทม. 2569 — Dailynews (UI Mockup)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Anuphan:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* ============ Design tokens — Dailynews CI ============ */
+:root{
+  --dn-pink:#E6007E;          /* brand magenta */
+  --dn-pink-deep:#C4006B;     /* text-safe magenta */
+  --dn-pink-soft:#FDE8F3;
+  --green:#0E7A3D;            /* election green (CI headline) */
+  --green-deep:#0A5C2E;
+  --green-soft:#E7F4EC;
+  --ink:#1A2330;
+  --muted:#5B6877;
+  --line:#E7E2E8;
+  --card:#FFFFFF;
+  --amber-flash:#FFF3C4;
+  --radius:18px;
+  --shadow-sm:0 1px 2px rgba(26,35,48,.06),0 2px 8px rgba(26,35,48,.05);
+  --shadow-md:0 2px 6px rgba(26,35,48,.07),0 12px 28px rgba(26,35,48,.08);
+  --font-display:'Prompt',sans-serif;
+  --font-body:'Anuphan',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--font-body);
+  color:var(--ink);
+  background:
+    radial-gradient(900px 420px at 8% -5%, rgba(120,210,235,.22), transparent 60%),
+    radial-gradient(900px 460px at 95% -8%, rgba(230,0,126,.10), transparent 55%),
+    radial-gradient(700px 500px at 50% 110%, rgba(14,122,61,.06), transparent 60%),
+    #FAF8FB;
+  min-height:100dvh;
+}
+::selection{background:var(--dn-pink-soft)}
+h1,h2,h3,.num{font-family:var(--font-display)}
+.num{font-variant-numeric:tabular-nums}
+button{font-family:inherit;cursor:pointer}
+a{color:inherit;text-decoration:none}
+svg{display:block}
+
+/* ============ Header ============ */
+.site-head{
+  position:sticky;top:0;z-index:100;
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.site-head .inner{
+  max-width:1280px;margin:0 auto;padding:10px 20px;
+  display:flex;align-items:center;gap:14px;flex-wrap:wrap;
+}
+.brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.brand .logo{
+  font-family:var(--font-display);font-weight:800;font-size:21px;
+  color:var(--dn-pink);letter-spacing:.5px;
+}
+.brand .logo span{color:var(--ink)}
+.brand .event{
+  font-family:var(--font-display);font-weight:600;font-size:15px;color:var(--green);
+  border-left:2px solid var(--line);padding-left:10px;
+}
+.head-status{display:flex;align-items:center;gap:14px;margin-left:auto;flex-wrap:wrap}
+.counted{min-width:190px}
+.counted .label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:3px}
+.counted .label b{color:var(--ink);font-family:var(--font-display)}
+.counted .bar{height:7px;border-radius:99px;background:#EEE8EF;overflow:hidden}
+.counted .bar i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,var(--green),#27A45C);transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.live{
+  display:inline-flex;align-items:center;gap:7px;
+  background:var(--dn-pink);color:#fff;font-family:var(--font-display);font-weight:700;
+  font-size:13px;letter-spacing:1.5px;padding:6px 14px 6px 11px;border-radius:99px;
+  box-shadow:0 4px 14px rgba(230,0,126,.35);
+}
+.live .dot{width:8px;height:8px;border-radius:50%;background:#fff;animation:pulse 1.6s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,255,255,.7)}100%{box-shadow:0 0 0 9px rgba(255,255,255,0)}}
+
+/* ============ Hero band ============ */
+.hero{max-width:1280px;margin:0 auto;padding:26px 20px 6px;text-align:center}
+.hero .kicker{font-family:var(--font-display);font-weight:600;font-size:clamp(15px,2.2vw,19px);color:var(--green)}
+.hero h1{
+  font-weight:800;font-size:clamp(24px,4.2vw,40px);line-height:1.25;color:var(--green-deep);
+  letter-spacing:-.3px;
+}
+.hero .meta{margin-top:8px;font-size:13.5px;color:var(--muted);display:flex;gap:8px;justify-content:center;align-items:center;flex-wrap:wrap}
+.hero .meta .upd{display:inline-flex;align-items:center;gap:5px}
+.hero .meta .upd svg{width:14px;height:14px;stroke:var(--dn-pink-deep)}
+.hero .meta b{color:var(--dn-pink-deep);font-family:var(--font-display);font-weight:600}
+
+/* ============ Page grid ============ */
+.wrap{max-width:1280px;margin:0 auto;padding:18px 20px 80px;display:grid;gap:18px}
+/* mobile-first source order: lead → map → chart → news */
+@media(min-width:1024px){
+  .wrap{
+    grid-template-columns:minmax(0,1.25fr) minmax(380px,1fr);
+    grid-template-areas:"map lead" "chart news";
+    align-items:start;
+  }
+  .sec-lead{grid-area:lead}
+  .sec-map{grid-area:map}
+  .sec-chart{grid-area:chart}
+  .sec-news{grid-area:news}
+}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.card-head{display:flex;align-items:center;gap:9px;padding:16px 18px 0}
+.card-head svg{width:19px;height:19px;stroke:var(--dn-pink);flex:none}
+.card-head h2{font-size:17px;font-weight:700}
+.card-head .hint{margin-left:auto;font-size:12px;color:var(--muted)}
+
+/* ============ Leaderboard ============ */
+.podium{display:grid;gap:10px;padding:14px 16px 6px}
+.cand{
+  position:relative;display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;
+  border:1px solid var(--line);border-radius:14px;padding:12px 14px;overflow:hidden;
+  background:#fff;transition:transform .2s ease,box-shadow .2s ease;
+}
+.cand::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--c)}
+.cand:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.cand.first{
+  padding:16px;border-color:color-mix(in srgb,var(--c) 35%,#fff);
+  background:linear-gradient(135deg,color-mix(in srgb,var(--c) 7%,#fff) 0%,#fff 55%);
+}
+.avatar-wrap{position:relative}
+.avatar{
+  width:52px;height:52px;border-radius:50%;display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:19px;color:#fff;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--c) 88%,#fff),var(--c));
+  box-shadow:inset 0 -2px 6px rgba(0,0,0,.18);
+}
+.cand.first .avatar{width:64px;height:64px;font-size:24px}
+.cand-no{
+  position:absolute;right:-4px;bottom:-4px;width:24px;height:24px;border-radius:50%;
+  background:var(--ink);color:#fff;display:grid;place-items:center;
+  font-family:var(--font-display);font-weight:700;font-size:12px;border:2px solid #fff;
+}
+.cand-info{min-width:0}
+.rank-chip{
+  display:inline-flex;align-items:center;gap:4px;font-family:var(--font-display);font-weight:600;
+  font-size:11px;color:var(--green-deep);background:var(--green-soft);
+  border-radius:99px;padding:2px 9px;margin-bottom:3px;
+}
+.rank-chip svg{width:11px;height:11px;stroke:var(--green-deep)}
+.cand-info .name{font-family:var(--font-display);font-weight:700;font-size:15.5px;line-height:1.3;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cand.first .name{font-size:18px}
+.cand-info .party{font-size:12.5px;color:var(--muted)}
+.cand-score{text-align:right}
+.cand-score .votes{font-family:var(--font-display);font-weight:700;font-size:18px;font-variant-numeric:tabular-nums;
+  border-radius:6px;padding:0 4px;transition:background .2s}
+.cand.first .votes{font-size:24px;color:var(--green-deep)}
+.cand-score .pct{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.cand-bar{grid-column:1/-1;height:7px;border-radius:99px;background:#F1EDF2;overflow:hidden}
+.cand-bar i{display:block;height:100%;border-radius:99px;background:var(--c);width:0;
+  transition:width .9s cubic-bezier(.2,.8,.2,1)}
+/* minor candidates table */
+.minor{padding:6px 16px 16px}
+.minor table{width:100%;border-collapse:collapse;font-size:13.5px}
+.minor th{font-family:var(--font-display);font-weight:600;font-size:11.5px;color:var(--muted);
+  text-align:left;padding:8px 6px;border-bottom:1px solid var(--line)}
+.minor th:last-child,.minor td:last-child{text-align:right}
+.minor td{padding:9px 6px;border-bottom:1px solid #F3EFF4}
+.minor tr:last-child td{border-bottom:none}
+.minor .mini-no{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;
+  color:#fff;font-family:var(--font-display);font-weight:700;font-size:11px;margin-right:8px;background:var(--c)}
+.minor .v{font-family:var(--font-display);font-weight:600;font-variant-numeric:tabular-nums;border-radius:5px;padding:0 4px}
+
+/* ============ Map ============ */
+.map-body{padding:14px 16px 16px}
+.map-grid{display:grid;grid-template-columns:repeat(11,1fr);gap:4px}
+.tile{
+  position:relative;aspect-ratio:1;border-radius:7px;border:none;padding:0;
+  background:color-mix(in srgb,var(--c) 82%,#fff);
+  display:grid;place-items:center;overflow:hidden;
+  transition:transform .15s ease,box-shadow .15s ease,background .5s ease;
+}
+.tile span{
+  font-family:var(--font-display);font-weight:600;font-size:9.5px;color:#fff;
+  text-shadow:0 1px 2px rgba(0,0,0,.35);line-height:1.1;text-align:center;padding:1px;
+  pointer-events:none;
+}
+.tile:hover{transform:scale(1.12);z-index:2;box-shadow:0 6px 16px rgba(26,35,48,.3)}
+.tile.sel{outline:3px solid var(--dn-pink);outline-offset:1px;z-index:1}
+.tile.flip{animation:tileflip .7s ease}
+@keyframes tileflip{0%{filter:brightness(1.7)}100%{filter:brightness(1)}}
+@media(max-width:640px){
+  .map-grid{gap:3px}
+  .tile span{display:none}
+  .tile{border-radius:5px}
+}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+/* district detail */
+.zone-detail{
+  margin-top:12px;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;
+  background:#FCFAFD;display:none;
+}
+.zone-detail.show{display:block;animation:fadein .25s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.zone-detail .zd-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.zone-detail .zd-head h3{font-size:15px;font-weight:700}
+.zone-detail .zd-head .zd-counted{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.zone-detail .zd-close{margin-left:auto;border:none;background:none;color:var(--muted);
+  font-size:18px;line-height:1;padding:2px 6px;border-radius:6px}
+.zone-detail .zd-close:hover{background:#EFE9F0}
+.zd-row{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0}
+.zd-row i{width:10px;height:10px;border-radius:3px;flex:none}
+.zd-row .zd-name{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.zd-row .zd-v{font-family:var(--font-display);font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ============ Stats & chart ============ */
+.sec-chart .grid{display:grid;gap:14px;padding:14px 16px 16px}
+@media(min-width:640px){.sec-chart .grid{grid-template-columns:repeat(3,1fr)}}
+.stat{border:1px solid var(--line);border-radius:14px;padding:13px 15px;background:#FDFCFE}
+.stat .s-label{font-size:12.5px;color:var(--muted)}
+.stat .s-value{font-family:var(--font-display);font-weight:700;font-size:23px;font-variant-numeric:tabular-nums;margin-top:2px}
+.stat .s-sub{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.stat.t .s-value{color:var(--green-deep)}
+.chart-box{padding:4px 16px 18px}
+.chart-box .c-title{font-size:13px;color:var(--muted);margin:8px 2px 8px}
+.chart-svg{width:100%;height:auto}
+.chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
+.chart-legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:2px}
+
+/* ============ News ============ */
+.news-list{display:grid;gap:12px;padding:14px 16px 16px}
+.news-item{display:grid;grid-template-columns:96px 1fr;gap:12px;align-items:center;
+  border:1px solid var(--line);border-radius:14px;padding:10px;background:#fff;
+  transition:transform .2s,box-shadow .2s}
+.news-item:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.news-thumb{aspect-ratio:4/3;border-radius:10px;display:grid;place-items:center;overflow:hidden;
+  background:linear-gradient(140deg,var(--green-soft),#D9EFE2 55%,var(--dn-pink-soft))}
+.news-thumb svg{width:26px;height:26px;stroke:var(--green);opacity:.55}
+.news-item h3{font-family:var(--font-display);font-weight:600;font-size:14.5px;line-height:1.45}
+.news-item time{display:block;margin-top:5px;font-size:12px;color:var(--dn-pink-deep);font-weight:600}
+.news-more{display:inline-flex;align-items:center;gap:6px;justify-self:start;margin:2px 16px 16px;
+  font-family:var(--font-display);font-weight:600;font-size:13.5px;color:var(--dn-pink-deep)}
+.news-more svg{width:15px;height:15px;stroke:var(--dn-pink-deep)}
+
+/* ============ flash on update ============ */
+.flash{animation:flash 1.1s ease-out}
+@keyframes flash{0%{background:var(--amber-flash)}100%{background:transparent}}
+
+/* ============ demo chrome ============ */
+.demo-pill{
+  position:fixed;left:14px;bottom:14px;z-index:200;
+  font-size:11.5px;color:var(--muted);background:rgba(255,255,255,.92);
+  border:1px solid var(--line);border-radius:99px;padding:6px 13px;box-shadow:var(--shadow-sm);
+  display:flex;align-items:center;gap:7px;
+}
+.demo-pill i{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 2s infinite}
+.view-toggle{
+  position:fixed;right:14px;bottom:14px;z-index:200;
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--ink);color:#fff;border:none;border-radius:99px;padding:10px 18px;
+  font-family:var(--font-display);font-weight:600;font-size:13.5px;box-shadow:var(--shadow-md);
+  transition:transform .15s;
+}
+.view-toggle:hover{transform:translateY(-2px)}
+.view-toggle svg{width:16px;height:16px;stroke:#fff}
+.phone-overlay{
+  position:fixed;inset:0;z-index:300;display:none;place-items:center;
+  background:rgba(26,35,48,.55);backdrop-filter:blur(6px);
+}
+.phone-overlay.show{display:grid}
+.phone-frame{
+  width:min(394px,92vw);height:min(840px,88dvh);
+  background:#0c0f14;border-radius:42px;padding:10px;box-shadow:0 40px 90px rgba(0,0,0,.5);
+  position:relative;
+}
+.phone-frame::after{content:"";position:absolute;top:20px;left:50%;transform:translateX(-50%);
+  width:110px;height:24px;border-radius:99px;background:#0c0f14;z-index:2}
+.phone-frame iframe{width:100%;height:100%;border:none;border-radius:33px;background:#fff}
+.phone-close{position:absolute;top:-46px;right:0;background:none;border:none;color:#fff;
+  font-family:var(--font-display);font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px}
+.phone-close svg{width:17px;height:17px;stroke:#fff}
+
+footer{max-width:1280px;margin:0 auto;padding:0 20px 90px;font-size:12px;color:var(--muted);text-align:center}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= Header ================= -->
+<header class="site-head">
+  <div class="inner">
+    <div class="brand">
+      <div class="logo">DAILY<span>NEWS</span></div>
+      <div class="event">เลือกตั้งผู้ว่าฯ กทม. 2569</div>
+    </div>
+    <div class="head-status">
+      <div class="counted">
+        <div class="label"><span>นับคะแนนแล้ว</span><b class="num" id="countedPct">0%</b></div>
+        <div class="bar"><i id="countedBar"></i></div>
+      </div>
+      <div class="live"><span class="dot"></span>LIVE</div>
+    </div>
+  </div>
+</header>
+
+<!-- ================= Hero ================= -->
+<section class="hero">
+  <div class="kicker">เกาะติดสถานการณ์เลือกตั้ง</div>
+  <h1>ผลเลือกตั้งผู้ว่าราชการกรุงเทพมหานคร 2569</h1>
+  <div class="meta">
+    <span class="upd">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      อัปเดตล่าสุด <b class="num" id="lastUpdate">–</b>
+    </span>
+    <span>•</span>
+    <span>หน่วยเลือกตั้งรายงานแล้ว <b class="num" id="unitCount">–</b> หน่วย</span>
+  </div>
+</section>
+
+<!-- ================= Dashboard ================= -->
+<main class="wrap">
+
+  <!-- Leaderboard -->
+  <section class="card sec-lead" aria-label="อันดับผู้สมัคร">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4v2a3 3 0 0 0 3 3M17 6h3v2a3 3 0 0 1-3 3"/></svg>
+      <h2>อันดับคะแนน (ไม่เป็นทางการ)</h2>
+      <span class="hint">เรียงตามคะแนนรวม 50 เขต</span>
+    </div>
+    <div class="podium" id="podium"></div>
+    <div class="minor">
+      <table aria-label="ผู้สมัครอันดับ 4 ขึ้นไป">
+        <thead><tr><th>ผู้สมัคร</th><th>สังกัด</th><th>คะแนน</th></tr></thead>
+        <tbody id="minorRows"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Map -->
+  <section class="card sec-map" aria-label="แผนที่ผลรายเขต">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+      <h2>ผลนำรายเขต — 50 เขต</h2>
+      <span class="hint">แตะเขตเพื่อดูคะแนน</span>
+    </div>
+    <div class="map-body">
+      <div class="map-grid" id="mapGrid" role="group" aria-label="แผนที่เขตกรุงเทพมหานคร"></div>
+      <div class="legend" id="legend"></div>
+      <div class="zone-detail" id="zoneDetail" aria-live="polite">
+        <div class="zd-head">
+          <h3 id="zdName">เขต</h3>
+          <span class="zd-counted num" id="zdCounted"></span>
+          <button class="zd-close" id="zdClose" aria-label="ปิดรายละเอียดเขต">✕</button>
+        </div>
+        <div id="zdRows"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats + chart -->
+  <section class="card sec-chart" aria-label="สถิติและกราฟ">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+      <h2>สถิติภาพรวม</h2>
+    </div>
+    <div class="grid">
+      <div class="stat t">
+        <div class="s-label">ผู้มาใช้สิทธิ (จากหน่วยที่นับแล้ว)</div>
+        <div class="s-value num" id="statTurnout">–</div>
+        <div class="s-sub num" id="statTurnoutAbs">–</div>
+      </div>
+      <div class="stat">
+        <div class="s-label">บัตรเสีย</div>
+        <div class="s-value num" id="statBad">–</div>
+        <div class="s-sub">ของบัตรทั้งหมดที่นับแล้ว</div>
+      </div>
+      <div class="stat">
+        <div class="s-label">ไม่ประสงค์ลงคะแนน</div>
+        <div class="s-value num" id="statNoVote">–</div>
+        <div class="s-sub">ของบัตรทั้งหมดที่นับแล้ว</div>
+      </div>
+    </div>
+    <div class="chart-box">
+      <div class="c-title">คะแนนสะสม 3 อันดับแรก ตั้งแต่ปิดหีบ</div>
+      <svg class="chart-svg" id="trendChart" viewBox="0 0 600 200" preserveAspectRatio="none" role="img" aria-label="กราฟคะแนนสะสมของผู้สมัคร 3 อันดับแรก"></svg>
+      <div class="chart-legend" id="chartLegend"></div>
+    </div>
+  </section>
+
+  <!-- News -->
+  <section class="card sec-news" aria-label="ข่าวจาก Dailynews">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z"/><path d="M17 8h3v9a2 2 0 0 1-2 2h-1M8 9h5M8 13h5M8 17h3"/></svg>
+      <h2>เกาะติดจาก Dailynews</h2>
+    </div>
+    <div class="news-list">
+      <a class="news-item" href="#">
+        <div class="news-thumb"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.2"/></svg></div>
+        <div><h3>บรรยากาศคึกคัก! คนกรุงแห่ใช้สิทธิเลือกตั้งผู้ว่าฯ ต่อเนื่องตั้งแต่เช้า</h3>
+        <time>28 มิถุนายน 2569 • 18:45 น.</time></div>
+      </a>
+      <a class="news-item" href="#">
+        <div class="news-thumb"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.2"/></svg></div>
+        <div><h3>กกต. คาดประกาศผลไม่เป็นทางการครบ 50 เขตราว 4 ทุ่มคืนนี้</h3>
+        <time>28 มิถุนายน 2569 • 19:20 น.</time></div>
+      </a>
+      <a class="news-item" href="#">
+        <div class="news-thumb"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/><circle cx="9" cy="9" r="1.2"/></svg></div>
+        <div><h3>เปิดสถิติ 5 เขตผู้มาใช้สิทธิสูงสุด — ฝั่งธนฯ มาแรงเกินคาด</h3>
+        <time>28 มิถุนายน 2569 • 20:05 น.</time></div>
+      </a>
+    </div>
+    <a class="news-more" href="#">อ่านข่าวเลือกตั้งทั้งหมด
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+  </section>
+
+</main>
+
+<footer>ผลคะแนนอย่างไม่เป็นทางการ — ข้อมูลในหน้านี้เป็น<b>ข้อมูลจำลอง</b>เพื่อการออกแบบ UI เท่านั้น</footer>
+
+<div class="demo-pill"><i></i>DEMO — จำลองข้อมูลเข้าแบบ realtime ทุก 3 วินาที</div>
+<button class="view-toggle" id="viewToggle">
+  <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg>
+  ดูแบบมือถือ
+</button>
+<div class="phone-overlay" id="phoneOverlay">
+  <div class="phone-frame">
+    <button class="phone-close" id="phoneClose">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>ปิด
+    </button>
+    <iframe id="phoneFrame" title="ตัวอย่างหน้าจอมือถือ"></iframe>
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   DEMO DATA — ข้อมูลจำลองทั้งหมด (ชื่อผู้สมัคร/พรรคเป็นชื่อสมมติ)
+================================================================== */
+const CANDIDATES = [
+  {no:1, name:'วรา สินธุเดช',      party:'อิสระ',        color:'#0E8A45', votes: 882450},
+  {no:5, name:'สมศักดิ์ พงศ์ธารา', party:'ประชารักษ์',   color:'#1B6CC4', votes: 741230},
+  {no:3, name:'พิมพ์ลดา เกียรติกุล',party:'ก้าวกรุง',     color:'#F47B20', votes: 508900},
+  {no:7, name:'ชลธร มหานที',      party:'อิสระ',        color:'#7A4FBF', votes: 152300},
+  {no:2, name:'เกรียงไกร บุญมาก',  party:'ไทยนคร',       color:'#C42B2B', votes:  98100},
+  {no:4, name:'อรอนงค์ แสงทอง',   party:'อิสระ',        color:'#0FA3A3', votes:  64500},
+  {no:6, name:'ประพันธ์ ศรีวงศ์',  party:'พลังเมือง',     color:'#8B6B2E', votes:  41200},
+  {no:8, name:'มานพ ตั้งตรง',     party:'อิสระ',        color:'#5B6770', votes:  22800},
+];
+
+/* tile cartogram ของ 50 เขต กทม. — [ชื่อ, col, row] (ผังโดยประมาณ) */
+const ZONES = [
+  ['ดอนเมือง',6,1],['สายไหม',7,1],['คลองสามวา',9,1],['หนองจอก',10,1],
+  ['หลักสี่',6,2],['บางเขน',7,2],['ลาดพร้าว',8,2],['บึงกุ่ม',9,2],['คันนายาว',10,2],['มีนบุรี',11,2],
+  ['ทวีวัฒนา',1,3],['ตลิ่งชัน',2,3],['บางพลัด',4,3],['บางซื่อ',5,3],['จตุจักร',6,3],['ห้วยขวาง',7,3],['วังทองหลาง',8,3],['บางกะปิ',9,3],['สะพานสูง',10,3],['ลาดกระบัง',11,3],
+  ['หนองแขม',1,4],['บางแค',2,4],['ภาษีเจริญ',3,4],['บางกอกน้อย',4,4],['ดุสิต',5,4],['พญาไท',6,4],['ราชเทวี',7,4],['ดินแดง',8,4],['สวนหลวง',9,4],['ประเวศ',10,4],
+  ['บางบอน',1,5],['จอมทอง',2,5],['บางกอกใหญ่',3,5],['ธนบุรี',4,5],['พระนคร',5,5],['ป้อมปราบฯ',6,5],['ปทุมวัน',7,5],['วัฒนา',8,5],['พระโขนง',9,5],
+  ['บางขุนเทียน',1,6],['ทุ่งครุ',2,6],['ราษฎร์บูรณะ',3,6],['คลองสาน',4,6],['สัมพันธวงศ์',5,6],['บางรัก',6,6],['สาทร',7,6],['คลองเตย',8,6],['บางนา',9,6],
+  ['บางคอแหลม',5,7],['ยานนาวา',6,7],
+];
+
+/* สุ่มผลรายเขตแบบ deterministic-ish: เขียวนำส่วนใหญ่ มีหย่อมน้ำเงิน/ส้ม */
+const zones = ZONES.map(([name,col,row],i)=>{
+  const seed = (i*2654435761)>>>0;
+  const r = (seed % 100)/100;
+  let leader = 0;                       // เขียวนำ
+  if(r>0.66 && r<=0.86) leader = 1;     // น้ำเงิน
+  else if(r>0.86) leader = 2;           // ส้ม
+  const counted = 55 + (seed % 45);     // 55-99%
+  const base = 28000 + (seed % 30000);
+  const share = [[.42,.31,.18],[.33,.43,.15],[.30,.22,.39]][leader];
+  const votes = CANDIDATES.map((c,ci)=>{
+    const s = share[ci] ?? (0.09/(CANDIDATES.length-3));
+    return Math.round(base * s * (0.85 + ((seed>>ci)%30)/100));
+  });
+  return {name,col,row,leader,counted,votes};
+});
+
+/* ---------- helpers ---------- */
+const fmt = n => n.toLocaleString('th-TH');
+const $ = id => document.getElementById(id);
+function flash(el){ el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+const sorted = () => [...CANDIDATES].sort((a,b)=>b.votes-a.votes);
+const totalVotes = () => CANDIDATES.reduce((s,c)=>s+c.votes,0);
+
+/* ---------- leaderboard ---------- */
+function renderPodium(){
+  const top = sorted().slice(0,3), tot = totalVotes();
+  $('podium').innerHTML = top.map((c,i)=>`
+    <article class="cand ${i===0?'first':''}" style="--c:${c.color}">
+      <div class="avatar-wrap">
+        <div class="avatar">${c.name.charAt(0)}</div>
+        <div class="cand-no num">${c.no}</div>
+      </div>
+      <div class="cand-info">
+        <span class="rank-chip">${i===0
+          ?'<svg viewBox="0 0 24 24" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 8 3 3 4-6 4 6 3-3v9H5V8Z"/></svg>'
+          :''}อันดับ ${i+1}</span>
+        <div class="name">${c.name}</div>
+        <div class="party">เบอร์ ${c.no} • ${c.party}</div>
+      </div>
+      <div class="cand-score">
+        <div class="votes num" data-votes="${c.no}">${fmt(c.votes)}</div>
+        <div class="pct num" data-pct="${c.no}">${(c.votes/tot*100).toFixed(1)}%</div>
+      </div>
+      <div class="cand-bar"><i data-bar="${c.no}"></i></div>
+    </article>`).join('');
+  requestAnimationFrame(()=>top.forEach(c=>{
+    document.querySelector(`[data-bar="${c.no}"]`).style.width = (c.votes/top[0].votes*100)+'%';
+  }));
+}
+function renderMinor(){
+  const rest = sorted().slice(3);
+  $('minorRows').innerHTML = rest.map((c,i)=>`
+    <tr>
+      <td><span class="mini-no num" style="--c:${c.color}">${c.no}</span>${i+4}. ${c.name}</td>
+      <td style="color:var(--muted)">${c.party}</td>
+      <td><span class="v num" data-votes="${c.no}">${fmt(c.votes)}</span></td>
+    </tr>`).join('');
+}
+
+/* ---------- map ---------- */
+let selectedZone = null;
+function renderMap(){
+  $('mapGrid').innerHTML = zones.map((z,i)=>`
+    <button class="tile" data-zone="${i}"
+      style="--c:${CANDIDATES[z.leader].color};grid-column:${z.col};grid-row:${z.row}"
+      aria-label="เขต${z.name} ผู้นำคะแนน: ${CANDIDATES[z.leader].name}">
+      <span>${z.name}</span>
+    </button>`).join('');
+  $('legend').innerHTML = CANDIDATES.slice(0,3).map(c=>
+    `<span><i style="background:${c.color}"></i>${c.name} นำ</span>`).join('')
+    + `<span style="margin-left:auto">ความเข้มสี = สัดส่วนนับแล้ว</span>`;
+  $('mapGrid').addEventListener('click',e=>{
+    const t = e.target.closest('.tile'); if(!t) return;
+    selectZone(+t.dataset.zone);
+  });
+  $('zdClose').addEventListener('click',()=>{
+    selectedZone=null; $('zoneDetail').classList.remove('show');
+    document.querySelectorAll('.tile.sel').forEach(t=>t.classList.remove('sel'));
+  });
+}
+function selectZone(i){
+  selectedZone = i;
+  const z = zones[i];
+  document.querySelectorAll('.tile.sel').forEach(t=>t.classList.remove('sel'));
+  document.querySelector(`[data-zone="${i}"]`).classList.add('sel');
+  $('zdName').textContent = 'เขต' + z.name;
+  $('zdCounted').textContent = 'นับแล้ว ' + z.counted + '%';
+  const order = z.votes.map((v,ci)=>({v,ci})).sort((a,b)=>b.v-a.v).slice(0,3);
+  const sum = z.votes.reduce((s,v)=>s+v,0);
+  $('zdRows').innerHTML = order.map(({v,ci})=>`
+    <div class="zd-row">
+      <i style="background:${CANDIDATES[ci].color}"></i>
+      <span class="zd-name">เบอร์ ${CANDIDATES[ci].no} ${CANDIDATES[ci].name}</span>
+      <span class="zd-v num">${fmt(v)} (${(v/sum*100).toFixed(1)}%)</span>
+    </div>`).join('');
+  $('zoneDetail').classList.add('show');
+}
+
+/* ---------- trend chart ---------- */
+const history = CANDIDATES.slice(0,3).map(c=>{
+  const pts=[]; for(let k=11;k>=0;k--) pts.push(Math.round(c.votes*(1-k*0.055)));
+  return pts;
+});
+function renderChart(){
+  const svg = $('trendChart');
+  const top3 = sorted().slice(0,3);
+  const max = Math.max(...history.flat())*1.08;
+  const W=600,H=200,P=8;
+  const line = pts => pts.map((v,i)=>
+    `${i===0?'M':'L'}${(P+i*(W-2*P)/(pts.length-1)).toFixed(1)},${(H-P-(v/max)*(H-2*P)).toFixed(1)}`).join('');
+  svg.innerHTML =
+    [40,80,120,160].map(y=>`<line x1="0" y1="${y}" x2="${W}" y2="${y}" stroke="#EEE8EF" stroke-width="1"/>`).join('')
+    + history.map((pts,i)=>{
+      const c = top3[i].color;
+      const last = pts[pts.length-1];
+      const x = W-P, y = H-P-(last/max)*(H-2*P);
+      return `<path d="${line(pts)} L${W-P},${H-P} L${P},${H-P} Z" fill="${c}" opacity="0.07"/>
+              <path d="${line(pts)}" fill="none" stroke="${c}" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="${x}" cy="${y}" r="4" fill="${c}"/>`;
+    }).join('');
+  $('chartLegend').innerHTML = top3.map(c=>
+    `<span><i style="background:${c.color}"></i>${c.name}</span>`).join('');
+}
+
+/* ---------- header / stats ---------- */
+let counted = 67.4, units = 4213;
+const UNITS_TOTAL = 6251;
+function renderHeader(){
+  $('countedPct').textContent = counted.toFixed(1)+'%';
+  $('countedBar').style.width = counted+'%';
+  $('unitCount').textContent = `${fmt(units)}/${fmt(UNITS_TOTAL)}`;
+  const now = new Date();
+  $('lastUpdate').textContent =
+    now.toLocaleTimeString('th-TH',{hour:'2-digit',minute:'2-digit',second:'2-digit'}) + ' น.';
+}
+function renderStats(){
+  const tot = totalVotes(), bad = Math.round(tot*0.0092), nov = Math.round(tot*0.0126);
+  const turnout = tot+bad+nov;
+  $('statTurnout').textContent = '57.3%';
+  $('statTurnoutAbs').textContent = fmt(turnout)+' คน';
+  $('statBad').textContent = (bad/turnout*100).toFixed(1)+'%';
+  $('statNoVote').textContent = (nov/turnout*100).toFixed(1)+'%';
+}
+
+/* ---------- realtime simulation ---------- */
+function tick(){
+  /* คะแนนเข้าตามสัดส่วนปัจจุบัน + noise */
+  const tot = totalVotes();
+  CANDIDATES.forEach(c=>{
+    c.votes += Math.round((c.votes/tot)*(2500+Math.random()*4000)*(0.7+Math.random()*0.6));
+  });
+  const top3 = sorted().slice(0,3);
+  history.forEach((pts,i)=>{ pts.push(top3[i].votes); if(pts.length>12) pts.shift(); });
+
+  /* อัปเดตเขตแบบสุ่ม 2-3 เขต */
+  const n = 2+Math.floor(Math.random()*2);
+  for(let k=0;k<n;k++){
+    const zi = Math.floor(Math.random()*zones.length);
+    const z = zones[zi];
+    z.votes = z.votes.map(v=>v+Math.round(Math.random()*400));
+    z.counted = Math.min(100, z.counted+1);
+    const tile = document.querySelector(`[data-zone="${zi}"]`);
+    if(tile){ tile.classList.remove('flip'); void tile.offsetWidth; tile.classList.add('flip'); }
+    if(selectedZone===zi) selectZone(zi);
+  }
+
+  counted = Math.min(99.9, counted+0.1);
+  units = Math.min(UNITS_TOTAL, units+3+Math.floor(Math.random()*5));
+
+  /* DOM update + flash เฉพาะตัวเลขที่เปลี่ยน */
+  const newTot = totalVotes();
+  CANDIDATES.forEach(c=>{
+    document.querySelectorAll(`[data-votes="${c.no}"]`).forEach(el=>{
+      el.textContent = fmt(c.votes); flash(el);
+    });
+    const pctEl = document.querySelector(`[data-pct="${c.no}"]`);
+    if(pctEl) pctEl.textContent = (c.votes/newTot*100).toFixed(1)+'%';
+  });
+  const leadV = sorted()[0].votes;
+  sorted().slice(0,3).forEach(c=>{
+    const bar = document.querySelector(`[data-bar="${c.no}"]`);
+    if(bar) bar.style.width = (c.votes/leadV*100)+'%';
+  });
+  renderHeader(); renderStats(); renderChart();
+}
+
+/* ---------- mobile preview ---------- */
+const isFramed = new URLSearchParams(location.search).has('frame');
+if(isFramed){
+  document.querySelector('.view-toggle').style.display='none';
+  document.querySelector('.demo-pill').style.display='none';
+}else{
+  $('viewToggle').addEventListener('click',()=>{
+    $('phoneFrame').src = location.pathname + '?frame=1';
+    $('phoneOverlay').classList.add('show');
+  });
+  $('phoneClose').addEventListener('click',()=>{
+    $('phoneOverlay').classList.remove('show');
+    $('phoneFrame').src='about:blank';
+  });
+  $('phoneOverlay').addEventListener('click',e=>{
+    if(e.target===e.currentTarget){ $('phoneOverlay').classList.remove('show'); $('phoneFrame').src='about:blank'; }
+  });
+}
+
+/* ---------- boot ---------- */
+renderPodium(); renderMinor(); renderMap(); renderChart(); renderHeader(); renderStats();
+const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+if(!reduced) setInterval(tick, 3000);
+</script>
+</body>
+</html>
