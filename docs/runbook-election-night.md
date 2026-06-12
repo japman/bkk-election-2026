@@ -42,3 +42,14 @@
 ## หลังปิดระบบ
 - [ ] export ResultRevision เก็บเป็นหลักฐาน: `bin/rails runner 'puts ResultRevision.order(:id).to_json' > revisions-backup.json`
 - [ ] สลับ election.status เป็น "closed"
+
+## Deploy ขึ้น UAT/Prod
+1. push ขึ้น main (หรือ tag `v*`) → GitHub Actions build + push image ขึ้น GHCR อัตโนมัติ
+   (repo ต้องมี GitHub remote ก่อน: `git remote add origin git@github.com:<ORG>/<REPO>.git`)
+2. เติมค่า `<SERVER_IP>`, `<ELECTION_DOMAIN>`, org/username ใน `config/deploy.yml`
+   และ secrets ใน `.kamal/secrets` (อย่า commit ค่าจริง)
+3. ครั้งแรก: `bin/kamal setup` — ครั้งถัดไป: `bin/kamal deploy`
+4. ตรวจ: `bin/kamal app logs -f` + เปิด https://<ELECTION_DOMAIN>/up ต้องได้ 200
+5. seed production: `bin/kamal app exec 'bin/rails db:seed'` แล้วสร้าง admin user
+   ตามคอมเมนต์ใน db/seeds.rb
+6. smoke test เครื่องเดียวก่อนขึ้นจริง: `docker compose -f compose.uat.yml -p bkk-uat up`

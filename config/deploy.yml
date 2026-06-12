@@ -1,0 +1,45 @@
+service: bkk2026-election
+image: <GITHUB_ORG>/bkk2026-election
+
+servers:
+  web:
+    hosts:
+      - <SERVER_IP>
+
+proxy:
+  ssl: true
+  host: <ELECTION_DOMAIN>          # เช่น uat-election.dailynews.co.th
+
+registry:
+  server: ghcr.io
+  username: <GITHUB_USERNAME>
+  password:
+    - KAMAL_REGISTRY_PASSWORD      # GitHub PAT scope write:packages — ใส่ใน .kamal/secrets
+
+builder:
+  arch: amd64
+
+env:
+  clear:
+    SOLID_QUEUE_IN_PUMA: "1"
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - REDIS_URL
+    - ECT_API_URL
+    - SNAPSHOT_BUCKET
+    - PUBLIC_ORIGIN
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+
+# UAT แบบไม่มี RDS: เปิด accessories ด้านล่างแล้วชี้ DATABASE_URL/REDIS_URL มาที่นี่
+# accessories:
+#   db:
+#     image: postgres:17
+#     host: <SERVER_IP>
+#     env:
+#       secret: [POSTGRES_PASSWORD]
+#     directories: [data:/var/lib/postgresql/data]
+#   redis:
+#     image: redis:7
+#     host: <SERVER_IP>
