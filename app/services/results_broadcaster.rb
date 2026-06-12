@@ -2,10 +2,10 @@
 # target id ต้องตรงกับ root element ของแต่ละ partial ใน app/views/dashboard/
 class ResultsBroadcaster
   REGIONS = [
-    ["header-status",  "dashboard/header_status"],
-    ["leaderboard",    "dashboard/leaderboard"],
-    ["zone-map",       "dashboard/map_grid"],
-    ["overview-stats", "dashboard/stats"]
+    [ "header-status",  "dashboard/header_status" ],
+    [ "leaderboard",    "dashboard/leaderboard" ],
+    [ "zone-map",       "dashboard/map_grid" ],
+    [ "overview-stats", "dashboard/stats" ]
   ].freeze
 
   def initialize(election)

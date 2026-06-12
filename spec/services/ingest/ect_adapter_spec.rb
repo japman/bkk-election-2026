@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Ingest::EctAdapter do
   let(:raw) { Rails.root.join("spec/fixtures/ingest/valid.json").read }
 
-  def parse(raw, codes: %w[01 02], numbers: [1, 2])
+  def parse(raw, codes: %w[01 02], numbers: [ 1, 2 ])
     described_class.parse(raw, expected_zone_codes: codes, known_numbers: numbers)
   end
 
@@ -28,7 +28,7 @@ RSpec.describe Ingest::EctAdapter do
   end
 
   it "rejects unknown candidate numbers" do
-    expect(parse(raw, numbers: [1])).not_to be_ok
+    expect(parse(raw, numbers: [ 1 ])).not_to be_ok
   end
 
   it "rejects invalid JSON" do

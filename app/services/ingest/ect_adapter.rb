@@ -11,7 +11,7 @@ module Ingest
       def parse(raw, expected_zone_codes:, known_numbers:)
         json = JSON.parse(raw)
         zones = json["zones"]
-        return Result.new({}, ["payload: zones must be an array"]) unless zones.is_a?(Array)
+        return Result.new({}, [ "payload: zones must be an array" ]) unless zones.is_a?(Array)
 
         errors = []
         data = {}
@@ -35,7 +35,7 @@ module Ingest
         end
         Result.new(data, errors)
       rescue JSON::ParserError => e
-        Result.new({}, ["invalid JSON: #{e.message}"])
+        Result.new({}, [ "invalid JSON: #{e.message}" ])
       end
 
       private
@@ -43,7 +43,7 @@ module Ingest
       def validate_zone(z, known_numbers)
         errors = []
         results = z["results"]
-        return ["results must be an array"] unless results.is_a?(Array)
+        return [ "results must be an array" ] unless results.is_a?(Array)
 
         results.each do |r|
           errors << "unknown candidate ##{r['number']}" unless known_numbers.include?(r["number"])
@@ -61,7 +61,7 @@ module Ingest
 
       def normalize(z)
         {
-          votes: z["results"].to_h { |r| [r["number"], r["votes"]] },
+          votes: z["results"].to_h { |r| [ r["number"], r["votes"] ] },
           stats: {
             eligible_voters: z["eligible"], turnout: z["turnout"],
             bad_ballots: z["bad"], no_vote: z["no_vote"],

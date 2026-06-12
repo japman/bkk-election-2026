@@ -15,10 +15,10 @@ class Admin::ZoneResultsController < ApplicationController
       return redirect_to edit_admin_zone_result_path(zone), alert: "ต้องติ๊กช่องยืนยันก่อนบันทึก"
     end
 
-    votes = params.fetch(:votes, {}).permit!.to_h
-      .transform_keys(&:to_i).transform_values(&:to_i)
+    # permit เฉพาะเบอร์ผู้สมัครจริง — key แปลกปลอม (เบอร์ผิด/สตริงขยะ) ถูกตัดทิ้งตรงนี้
     known = election.candidates.pluck(:number)
-    votes = votes.select { |number, _| known.include?(number) }
+    votes = params.fetch(:votes, {}).permit(*known.map(&:to_s)).to_h
+                  .transform_keys(&:to_i).transform_values(&:to_i)
     raw_stats = params[:stats]&.permit(:eligible_voters, :turnout, :bad_ballots,
                                        :no_vote, :counted_percent)
     stats = if raw_stats

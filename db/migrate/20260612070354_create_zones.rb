@@ -8,6 +8,6 @@ class CreateZones < ActiveRecord::Migration[8.1]
       t.integer :grid_row, null: false
       t.timestamps
     end
-    add_index :zones, [:election_id, :code], unique: true
+    add_index :zones, [ :election_id, :code ], unique: true
   end
 end

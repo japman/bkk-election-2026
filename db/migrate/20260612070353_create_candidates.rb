@@ -9,6 +9,6 @@ class CreateCandidates < ActiveRecord::Migration[8.1]
       t.string :photo_url
       t.timestamps
     end
-    add_index :candidates, [:election_id, :number], unique: true
+    add_index :candidates, [ :election_id, :number ], unique: true
   end
 end

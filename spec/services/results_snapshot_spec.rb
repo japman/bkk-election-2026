@@ -20,7 +20,7 @@ RSpec.describe ResultsSnapshot do
 
     z1 = snap[:zones].find { |z| z[:code] == "01" }
     expect(z1[:leader_number]).to eq(1)
-    expect(z1[:top]).to eq([{ number: 1, votes: 100 }, { number: 2, votes: 60 }])
+    expect(z1[:top]).to eq([ { number: 1, votes: 100 }, { number: 2, votes: 60 } ])
     expect(snap[:zones].size).to eq(2)
     expect(snap[:zones].map { |z| z[:code] }).to eq(%w[01 02])
   end

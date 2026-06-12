@@ -80,7 +80,7 @@ Rails.application.configure do
   config.active_record.attributes_for_inspect = [ :id ]
 
   # WebSocket ผ่าน ALB — เสิร์ฟ /cable จาก app เดียวกัน
-  config.action_cable.allowed_request_origins = [ENV.fetch("PUBLIC_ORIGIN", "https://election.dailynews.co.th")]
+  config.action_cable.allowed_request_origins = [ ENV.fetch("PUBLIC_ORIGIN", "https://election.dailynews.co.th") ]
 
   # Enable DNS rebinding protection and other `Host` header attacks.
   # config.hosts = [
