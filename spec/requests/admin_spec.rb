@@ -50,5 +50,12 @@ RSpec.describe "Admin panel", type: :request do
         patch toggle_mode_admin_election_path
       }.to change { election.reload.data_mode }.from("api").to("manual")
     end
+
+    it "lists recent revisions" do
+      ResultWriter.new(zone, source: "api").apply!({ 1 => 123 })
+      get admin_revisions_path
+      expect(response.body).to include("123")
+      expect(response.body).to include("api")
+    end
   end
 end
