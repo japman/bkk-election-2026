@@ -7,6 +7,6 @@ class Zone < ApplicationRecord
   validates :name, :grid_col, :grid_row, presence: true
 
   def leading_candidate
-    vote_results.order(votes: :desc).first&.candidate
+    vote_results.max_by(&:votes)&.candidate
   end
 end

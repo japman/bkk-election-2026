@@ -23,7 +23,7 @@ class Election < ApplicationRecord
 
   # เฉลี่ยทั้ง 50 เขต — เขตที่ยังไม่รายงานนับเป็น 0
   def counted_percent
-    return 0.0 if zones.none?
+    return 0.to_d if zones.none?
     (ZoneStat.where(zone: zones).sum(:counted_percent) / zones.count).round(1)
   end
 
