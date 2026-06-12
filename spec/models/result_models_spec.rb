@@ -14,6 +14,12 @@ RSpec.describe VoteResult do
     VoteResult.create!(zone:, candidate:, votes: 10, source: "api")
     expect(VoteResult.new(zone:, candidate:, votes: 20, source: "api")).not_to be_valid
   end
+
+  it "rejects a candidate from a different election" do
+    other = build_election(zones: 1, candidates: 1)
+    vr = VoteResult.new(zone:, candidate: other.candidates.first, votes: 1, source: "api")
+    expect(vr).not_to be_valid
+  end
 end
 
 RSpec.describe ZoneStat do
