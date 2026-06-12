@@ -1,0 +1,28 @@
+# UAT/smoke test: ทุกอย่างในเครื่องเดียว — production จริงใช้ RDS/ElastiCache ผ่าน ENV
+services:
+  web:
+    build: .
+    ports:
+      - "3100:80"
+    environment:
+      DATABASE_URL: postgres://postgres:secret@db/bkk2026_production
+      REDIS_URL: redis://redis:6379/0
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      SOLID_QUEUE_IN_PUMA: "1"          # รัน ingest job ใน puma — เครื่องเดียวพอสำหรับ UAT
+      PUBLIC_ORIGIN: http://localhost:3100
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: bkk2026_production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      retries: 15
+  redis:
+    image: redis:7

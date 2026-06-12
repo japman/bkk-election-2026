@@ -52,7 +52,8 @@ COPY . .
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+# REDIS_URL dummy satisfies cable.yml env check; no actual connection is made at compile time
+RUN SECRET_KEY_BASE_DUMMY=1 REDIS_URL=redis://localhost:6379/0 ./bin/rails assets:precompile
 
 
 

@@ -3,6 +3,26 @@
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
+
+  # Solid Queue/Cache use separate databases with schema files (no migration files).
+  # db:prepare handles primary; auxiliary DBs need explicit schema load on fresh
+  # containers. guard: only load when sentinel table is absent (idempotent).
+  ./bin/rails runner "
+    {
+      queue: ['solid_queue_jobs',   'db/queue_schema.rb'],
+      cache: ['solid_cache_entries', 'db/cache_schema.rb']
+    }.each do |name, (sentinel, schema_path)|
+      cfg = ActiveRecord::Base.configurations.find_db_config(name.to_s)
+      next unless cfg && File.exist?(Rails.root.join(schema_path))
+      ActiveRecord::Base.establish_connection(cfg)
+      tables = ActiveRecord::Base.connection.tables
+      unless tables.include?(sentinel)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(cfg, :ruby)
+        puts \"[entrypoint] loaded #{name} schema (#{cfg.database})\"
+      end
+    end
+    ActiveRecord::Base.establish_connection(:primary)
+  "
 fi
 
 exec "${@}"
