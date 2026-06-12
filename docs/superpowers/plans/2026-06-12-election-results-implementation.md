@@ -16,6 +16,8 @@
 - ทุกคำสั่งรันจาก repo root (`dailynews-election-bkk2026/`) — Rails app อยู่ที่ root
 - ชื่อผู้สมัคร/คะแนนใน seeds เป็น**ข้อมูลจำลอง** แทนที่ด้วยข้อมูลจริงเมื่อ กกต. ประกาศรายชื่อ
 - ค่า `source` ใน VoteResult/ZoneStat = `api|manual`, ใน ResultRevision = `api|admin` (ตาม spec §6)
+- **API กกต. ยังไม่ได้ spec จริง** — ทำต่อด้วย format สมมติ (Task 7) ได้เลย
+  เมื่อได้ spec จริงค่อยแก้ `Ingest::EctAdapter` + fixture **เท่านั้น** ส่วนอื่นไม่กระทบ
 
 ---
 
@@ -2760,6 +2762,246 @@ git commit -m "feat: production cable config, k6 load tests, election night runb
 
 ---
 
+## Phase 5 — Containerize & Deploy (UAT/Prod)
+
+### Task 19: Docker image + smoke test ด้วย docker compose
+
+**Files:**
+- Verify/Modify: `Dockerfile`, `.dockerignore`, `bin/docker-entrypoint` (Rails 8 generate ให้แล้วตอน `rails new` — ห้ามสร้างใหม่ถ้ามีอยู่)
+- Modify: `config/database.yml` (production block)
+- Create: `compose.uat.yml`
+
+- [ ] **Step 1: ตรวจไฟล์ Docker ที่ Rails generate ให้**
+
+```bash
+ls Dockerfile .dockerignore bin/docker-entrypoint
+```
+
+Expected: มีครบ 3 ไฟล์ (Rails 8 สร้างให้ default) — ถ้ามีครบ **ไม่ต้องแก้ Dockerfile**
+
+- [ ] **Step 2: จัด production database config**
+
+Rails 8 default production ใช้ multi-database (primary/cache/queue/cable) สำหรับ solid stack
+— เราใช้ Redis เป็น cable adapter แล้ว (Task 18) จึงเหลือ 3 ฐาน
+แทนที่ block `production:` ใน `config/database.yml`:
+
+```yaml
+production:
+  primary: &primary_production
+    <<: *default
+    url: <%= ENV["DATABASE_URL"] %>
+  cache:
+    <<: *primary_production
+    database: bkk2026_production_cache
+    migrations_paths: db/cache_migrate
+  queue:
+    <<: *primary_production
+    database: bkk2026_production_queue
+    migrations_paths: db/queue_migrate
+```
+
+(`url` + `database` ใช้ร่วมกันได้ — `database` override ชื่อฐานจาก url; `db:prepare`
+ใน docker-entrypoint จะสร้างครบทุกฐานเอง)
+
+- [ ] **Step 3: docker compose สำหรับ smoke test / UAT แบบ self-contained**
+
+Create `compose.uat.yml`:
+
+```yaml
+# UAT/smoke test: ทุกอย่างในเครื่องเดียว — production จริงใช้ RDS/ElastiCache ผ่าน ENV
+services:
+  web:
+    build: .
+    ports:
+      - "3000:80"
+    environment:
+      DATABASE_URL: postgres://postgres:secret@db/bkk2026_production
+      REDIS_URL: redis://redis:6379/0
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      SOLID_QUEUE_IN_PUMA: "1"          # รัน ingest job ใน puma — เครื่องเดียวพอสำหรับ UAT
+      PUBLIC_ORIGIN: http://localhost:3000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: bkk2026_production
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      retries: 15
+  redis:
+    image: redis:7
+```
+
+- [ ] **Step 4: Build + smoke test**
+
+```bash
+docker build -t bkk2026-election .
+RAILS_MASTER_KEY=$(cat config/master.key) docker compose -f compose.uat.yml up -d
+sleep 10
+curl -fsS http://localhost:3000/up        # Expected: HTTP 200 (Rails health check)
+curl -fsS http://localhost:3000/ | grep -o "เลือกตั้งผู้ว่าฯ"   # Expected: เจอข้อความ
+docker compose -f compose.uat.yml down
+```
+
+ถ้า build/boot fail: อ่าน error แล้วแก้ตามจริง (ส่วนใหญ่คือ ENV ขาดหรือ database.yml) —
+ห้าม comment ส่วนของ Dockerfile ทิ้งเพื่อให้ผ่าน
+
+- [ ] **Step 5: Commit**
+
+```bash
+git add -A
+git commit -m "feat: production docker image with UAT compose smoke test"
+```
+
+---
+
+### Task 20: Kamal + GHCR + CI build
+
+**Files:**
+- Create: `config/deploy.yml`, `.kamal/secrets`, `.github/workflows/docker.yml`
+- Modify: `Gemfile` (kamal), `docs/runbook-election-night.md` (วิธี deploy)
+
+- [ ] **Step 1: ติดตั้ง Kamal**
+
+```bash
+bundle add kamal --group development --require false
+bin/kamal init
+```
+
+Expected: สร้าง `config/deploy.yml` + `.kamal/secrets`
+
+- [ ] **Step 2: เขียน deploy config**
+
+แทนที่ `config/deploy.yml` (ค่าใน `< >` คือของจริงที่ทีมเติมตอน deploy — server IP/domain
+ยังไม่รู้ตอนเขียนแผน):
+
+```yaml
+service: bkk2026-election
+image: ghcr.io/<GITHUB_ORG>/bkk2026-election
+
+servers:
+  web:
+    hosts:
+      - <SERVER_IP>
+
+proxy:
+  ssl: true
+  host: <ELECTION_DOMAIN>          # เช่น uat-election.dailynews.co.th
+
+registry:
+  server: ghcr.io
+  username: <GITHUB_USERNAME>
+  password:
+    - KAMAL_REGISTRY_PASSWORD      # GitHub PAT scope write:packages — ใส่ใน .kamal/secrets
+
+env:
+  clear:
+    SOLID_QUEUE_IN_PUMA: "1"
+  secret:
+    - RAILS_MASTER_KEY
+    - DATABASE_URL
+    - REDIS_URL
+    - ECT_API_URL
+    - SNAPSHOT_BUCKET
+    - PUBLIC_ORIGIN
+    - AWS_ACCESS_KEY_ID
+    - AWS_SECRET_ACCESS_KEY
+
+# UAT แบบไม่มี RDS: เปิด accessories ด้านล่างแล้วชี้ DATABASE_URL/REDIS_URL มาที่นี่
+# accessories:
+#   db:
+#     image: postgres:17
+#     host: <SERVER_IP>
+#     env:
+#       secret: [POSTGRES_PASSWORD]
+#     directories: [data:/var/lib/postgresql/data]
+#   redis:
+#     image: redis:7
+#     host: <SERVER_IP>
+```
+
+ตรวจ `.kamal/secrets` อยู่ใน `.gitignore` แล้ว (kamal init จัดให้ — ยืนยันอีกครั้ง)
+
+- [ ] **Step 3: GitHub Actions — build + push image ขึ้น GHCR**
+
+Create `.github/workflows/docker.yml`:
+
+```yaml
+name: Build and push image
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/metadata-action@v5
+        id: meta
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=ref,event=tag
+            type=sha
+            type=raw,value=latest,enable={{is_default_branch}}
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+```
+
+(workflow จะทำงานเมื่อ repo ถูก push ขึ้น GitHub — ตอนนี้ repo ยังเป็น local อย่างเดียว
+ตั้ง remote ก่อน: `git remote add origin git@github.com:<ORG>/<REPO>.git`)
+
+- [ ] **Step 4: เพิ่มวิธี deploy ใน runbook**
+
+ต่อท้าย `docs/runbook-election-night.md`:
+
+```markdown
+## Deploy ขึ้น UAT/Prod
+1. push ขึ้น main (หรือ tag `v*`) → GitHub Actions build + push image ขึ้น GHCR อัตโนมัติ
+2. เติมค่าใน `config/deploy.yml` (`<SERVER_IP>`, `<ELECTION_DOMAIN>`, org/username)
+   และ secrets ใน `.kamal/secrets` (อย่า commit ค่าจริง)
+3. ครั้งแรก: `bin/kamal setup` — ครั้งถัดไป: `bin/kamal deploy`
+4. ตรวจ: `bin/kamal app logs -f` + เปิด https://<ELECTION_DOMAIN>/up ต้องได้ 200
+5. seed production: `bin/kamal app exec 'bin/rails db:seed'` แล้วสร้าง admin user
+   ตามคอมเมนต์ใน db/seeds.rb
+```
+
+- [ ] **Step 5: ตรวจ config + commit**
+
+```bash
+bin/kamal config   # Expected: แสดง config ที่ parse ได้ ไม่ error (ค่า <...> ยัง dummy ได้)
+bundle exec rspec  # ทั้ง suite ยังเขียว
+git add -A
+git commit -m "feat: kamal deploy config and GHCR build workflow"
+```
+
+---
+
 ## ลำดับการทำงานแนะนำ (deadline 21 มิ.ย.)
 
 | วัน | งาน |
@@ -2769,7 +3011,7 @@ git commit -m "feat: production cable config, k6 load tests, election night runb
 | วันที่ 3-4 | Task 10-11 (dashboard + realtime — ชิ้นใหญ่สุด) |
 | วันที่ 5 | Task 12-14 (chart, fallback, news) |
 | วันที่ 6 | Task 15-17 (admin) |
-| วันที่ 7 | Task 18 + deploy staging + k6 |
+| วันที่ 7 | Task 18-20 (prod config, Docker, Kamal/GHCR) + deploy UAT + k6 |
 | วันที่ 8 | Dress rehearsal กับทีมข่าว (spec §8.4) — ซ้อม API ล่ม, สลับโหมด |
 | วันที่ 9 | buffer แก้ของที่เจอจาก rehearsal |
 
