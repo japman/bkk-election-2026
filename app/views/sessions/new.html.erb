@@ -1,11 +1,26 @@
-<%= tag.div(flash[:alert], style: "color:red") if flash[:alert] %>
-<%= tag.div(flash[:notice], style: "color:green") if flash[:notice] %>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <div class="logo">DAILY<span>NEWS</span></div>
+      <div class="sub">ห้องควบคุมผลคะแนน — เลือกตั้งผู้ว่าฯ กทม. 2569</div>
+      <div class="desc">สำหรับทีมงานที่ได้รับสิทธิ์เท่านั้น</div>
+    </div>
 
-<%= form_with url: session_path do |form| %>
-  <%= form.email_field :email_address, required: true, autofocus: true, autocomplete: "username", placeholder: "Enter your email address", value: params[:email_address] %><br>
-  <%= form.password_field :password, required: true, autocomplete: "current-password", placeholder: "Enter your password", maxlength: 72 %><br>
-  <%= form.submit "Sign in" %>
-<% end %>
-<br>
+    <%= form_with url: session_path do |form| %>
+      <div class="field">
+        <%= form.label :email_address, "อีเมล" %>
+        <%= form.email_field :email_address, required: true, autofocus: true,
+              autocomplete: "username", placeholder: "you@dailynews.co.th",
+              value: params[:email_address] %>
+      </div>
+      <div class="field">
+        <%= form.label :password, "รหัสผ่าน" %>
+        <%= form.password_field :password, required: true,
+              autocomplete: "current-password", maxlength: 72 %>
+      </div>
+      <%= form.submit "เข้าสู่ระบบ", class: "btn btn-primary btn-block" %>
+    <% end %>
 
-<%= link_to "Forgot password?", new_password_path %>
+    <div class="auth-foot"><%= link_to "ลืมรหัสผ่าน?", new_password_path %></div>
+  </div>
+</div>

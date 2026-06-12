@@ -1,27 +1,29 @@
-<main class="wrap" style="display: block; max-width: 900px">
-  <h1 style="font-family: var(--font-display); margin: 18px 0">ประวัติการแก้ไข (ล่าสุด 200 รายการ)</h1>
-  <section class="card" style="padding: 16px 18px">
-    <table style="width: 100%; border-collapse: collapse; font-size: 14px">
+<%= render "admin/bar" %>
+<main class="admin-wrap">
+  <h1>ประวัติการแก้ไข (ล่าสุด 200 รายการ)</h1>
+
+  <section class="admin-card">
+    <table class="admin-table">
       <thead><tr>
-        <th style="text-align: left; padding: 6px">เวลา</th>
-        <th style="text-align: left; padding: 6px">รายการ</th>
-        <th style="text-align: left; padding: 6px">เดิม → ใหม่</th>
-        <th style="text-align: left; padding: 6px">ที่มา</th>
-        <th style="text-align: left; padding: 6px">ผู้แก้</th>
+        <th>เวลา</th>
+        <th>รายการ</th>
+        <th>เดิม → ใหม่</th>
+        <th>ที่มา</th>
+        <th>ผู้แก้</th>
       </tr></thead>
       <tbody>
         <% @revisions.each do |rev| %>
-          <tr style="border-top: 1px solid var(--line)">
-            <td style="padding: 6px"><%= rev.created_at.strftime("%d/%m %H:%M:%S") %></td>
-            <td style="padding: 6px"><%= rev.recordable_type %> #<%= rev.recordable_id %></td>
-            <td style="padding: 6px"><%= rev.old_values %> → <%= rev.new_values %></td>
-            <td style="padding: 6px"><%= rev.source %></td>
-            <td style="padding: 6px"><%= rev.editor || "-" %></td>
+          <tr>
+            <td class="num"><%= rev.created_at.strftime("%d/%m %H:%M:%S") %></td>
+            <td><%= rev.recordable_type %> #<%= rev.recordable_id %></td>
+            <td class="num"><%= rev.old_values %> → <%= rev.new_values %></td>
+            <td><%= rev.source %></td>
+            <td><%= rev.editor || "-" %></td>
           </tr>
         <% end %>
       </tbody>
     </table>
-    <p style="margin-top: 10px; color: var(--muted)">
+    <p style="margin-top: 10px; color: var(--muted); font-size: 13px">
       ย้อนคะแนน: เปิดหน้าแก้ไขเขตนั้น กรอกค่า "เดิม" จากตารางนี้ แล้วบันทึก (ระบบบันทึกเป็น revision ใหม่ — ไม่ลบประวัติ)
     </p>
   </section>

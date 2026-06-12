@@ -1,0 +1,13 @@
+<header class="admin-bar">
+  <div class="inner">
+    <div class="logo">DAILY<span>NEWS</span></div>
+    <div class="label">ห้องควบคุมผลคะแนน</div>
+    <nav>
+      <%= link_to "หน้ารายงานผล", root_path, class: "btn btn-ghost btn-sm",
+            target: "_blank", rel: "noopener" %>
+      <%= link_to "ประวัติการแก้ไข", admin_revisions_path, class: "btn btn-ghost btn-sm" %>
+      <%= button_to "ออกจากระบบ", session_path, method: :delete,
+            class: "btn btn-danger-ghost btn-sm" %>
+    </nav>
+  </div>
+</header>
