@@ -11,6 +11,15 @@ Rails.application.routes.draw do
   # get "manifest" => "rails/pwa#manifest", as: :pwa_manifest
   # get "service-worker" => "rails/pwa#service_worker", as: :pwa_service_worker
 
+  namespace :admin do
+    root "dashboard#index"
+    resources :zone_results, only: %i[edit update]
+    resource :election, only: [] do
+      patch :toggle_mode
+    end
+    resources :revisions, only: :index
+  end
+
   # Defines the root path route ("/")
   root "dashboard#show"
 end

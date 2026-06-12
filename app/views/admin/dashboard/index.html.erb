@@ -1,0 +1,37 @@
+<main class="wrap" style="display: block; max-width: 900px">
+  <h1 style="font-family: var(--font-display); margin: 18px 0">ห้องควบคุมผลคะแนน</h1>
+
+  <section class="card" style="padding: 16px 18px; margin-bottom: 16px">
+    <p>โหมดข้อมูลปัจจุบัน:
+      <strong style="color: <%= @election.api? ? 'var(--green)' : 'var(--dn-pink-deep)' %>">
+        <%= @election.api? ? "API อัตโนมัติ" : "MANUAL — ทีมงานกรอกมือ (API ถูกพัก)" %>
+      </strong>
+    </p>
+    <%= button_to @election.api? ? "สลับเป็นโหมดกรอกมือ (พัก API)" : "สลับกลับเป็นโหมด API",
+          toggle_mode_admin_election_path, method: :patch,
+          data: { turbo_confirm: "ยืนยันการสลับโหมดข้อมูล? มีผลต่อหน้าเว็บสาธารณะทันที" },
+          style: "margin-top: 8px" %>
+    <p style="margin-top: 8px"><%= link_to "ดูประวัติการแก้ไขทั้งหมด →", admin_revisions_path %></p>
+    <p style="margin-top: 4px"><%= button_to "ออกจากระบบ", session_path, method: :delete %></p>
+  </section>
+
+  <section class="card" style="padding: 16px 18px">
+    <h2 style="font-family: var(--font-display); font-size: 17px">กรอก/แก้คะแนนรายเขต</h2>
+    <table style="width: 100%; border-collapse: collapse; margin-top: 10px">
+      <thead><tr>
+        <th style="text-align: left; padding: 6px">เขต</th>
+        <th style="text-align: right; padding: 6px">นับแล้ว</th>
+        <th style="padding: 6px"></th>
+      </tr></thead>
+      <tbody>
+        <% @zones.each do |zone| %>
+          <tr style="border-top: 1px solid var(--line)">
+            <td style="padding: 6px"><%= zone.code %> <%= zone.name %></td>
+            <td style="padding: 6px; text-align: right"><%= zone.zone_stat&.counted_percent || 0 %>%</td>
+            <td style="padding: 6px; text-align: right"><%= link_to "แก้ไข", edit_admin_zone_result_path(zone) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </section>
+</main>

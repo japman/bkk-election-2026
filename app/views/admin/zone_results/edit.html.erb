@@ -1,0 +1,36 @@
+<main class="wrap" style="display: block; max-width: 640px">
+  <h1 style="font-family: var(--font-display); margin: 18px 0">เขต<%= @zone.name %> (<%= @zone.code %>)</h1>
+
+  <%= form_with url: admin_zone_result_path(@zone), method: :patch do |f| %>
+    <section class="card" style="padding: 16px 18px; margin-bottom: 14px">
+      <h2 style="font-family: var(--font-display); font-size: 16px">คะแนนผู้สมัคร</h2>
+      <% @candidates.each do |c| %>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px">
+          <label for="votes_<%= c.number %>" style="flex: 1">เบอร์ <%= c.number %> — <%= c.name %></label>
+          <input type="number" min="0" id="votes_<%= c.number %>" name="votes[<%= c.number %>]"
+                 value="<%= @existing[c.id]&.votes || 0 %>" style="width: 140px; padding: 6px">
+        </div>
+      <% end %>
+    </section>
+
+    <section class="card" style="padding: 16px 18px; margin-bottom: 14px">
+      <h2 style="font-family: var(--font-display); font-size: 16px">สถิติเขต</h2>
+      <% { eligible_voters: "ผู้มีสิทธิ", turnout: "มาใช้สิทธิ", bad_ballots: "บัตรเสีย",
+           no_vote: "ไม่ประสงค์ฯ", counted_percent: "นับแล้ว (%)" }.each do |field, label| %>
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px">
+          <label for="stats_<%= field %>" style="flex: 1"><%= label %></label>
+          <input type="number" min="0" step="<%= field == :counted_percent ? '0.1' : '1' %>"
+                 id="stats_<%= field %>" name="stats[<%= field %>]"
+                 value="<%= @stat.public_send(field) %>" style="width: 140px; padding: 6px">
+        </div>
+      <% end %>
+    </section>
+
+    <label style="display: flex; gap: 8px; align-items: center; margin-bottom: 12px">
+      <input type="checkbox" name="confirm" value="1">
+      ตรวจสอบตัวเลขแล้ว ยืนยันบันทึก (ลงประวัติในชื่อ <%= Current.user.email_address %>)
+    </label>
+    <%= f.submit "บันทึกผลเขตนี้" %>
+    <%= link_to "ยกเลิก", admin_root_path, style: "margin-left: 10px" %>
+  <% end %>
+</main>
