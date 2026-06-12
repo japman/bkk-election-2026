@@ -1,4 +1,5 @@
 require "rails_helper"
+require "aws-sdk-s3"
 
 RSpec.describe ResultsSnapshot do
   it "builds the public payload" do
@@ -21,6 +22,7 @@ RSpec.describe ResultsSnapshot do
     expect(z1[:leader_number]).to eq(1)
     expect(z1[:top]).to eq([{ number: 1, votes: 100 }, { number: 2, votes: 60 }])
     expect(snap[:zones].size).to eq(2)
+    expect(snap[:zones].map { |z| z[:code] }).to eq(%w[01 02])
   end
 end
 
@@ -35,5 +37,20 @@ RSpec.describe SnapshotPublisher do
     expect(JSON.parse(path.read)).to have_key("candidates")
   ensure
     FileUtils.rm_f(path)
+  end
+
+  it "puts results.json to S3 in production" do
+    e = build_election(zones: 1, candidates: 1)
+    s3 = instance_double(Aws::S3::Client)
+    allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
+    allow(Aws::S3::Client).to receive(:new).and_return(s3)
+    expect(s3).to receive(:put_object).with(
+      hash_including(bucket: "test-bucket", key: "results.json",
+                     content_type: "application/json", cache_control: "max-age=5")
+    )
+    ENV["SNAPSHOT_BUCKET"] = "test-bucket"
+    SnapshotPublisher.new(e).publish
+  ensure
+    ENV.delete("SNAPSHOT_BUCKET")
   end
 end

@@ -20,9 +20,5 @@ production:
     schedule: every 30 seconds
 
 development:
-  # dev ไม่มี ECT_API_URL → job raise KeyError ใน Client ตอน ENV.fetch
-  # ซึ่งไม่ใช่ FetchError เลยไม่ retry — แค่ log error ใน Solid Queue, ไม่กระทบเว็บ
-  ingest_poll:
-    class: IngestPollJob
-    queue: default
-    schedule: every 30 seconds
+  # ingest_poll ไม่รันใน dev โดย default (ไม่มี ECT_API_URL จะ fail ทุก 30 วิ)
+  # ทดสอบ pipeline: ตั้ง ECT_API_URL ชี้ mock server แล้ว copy block จาก production มาใส่

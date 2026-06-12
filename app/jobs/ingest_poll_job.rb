@@ -1,8 +1,9 @@
 class IngestPollJob < ApplicationJob
   queue_as :default
 
-  # API ล่ม/timeout → exponential backoff (spec §7) — รอบถัดไปของ recurring จะมาใน 30 วิอยู่แล้ว
-  retry_on Ingest::Client::FetchError, wait: :polynomially_longer, attempts: 5
+  # API ล่ม → ลองซ้ำเร็วๆ ครั้งเดียวพอ (รอบ recurring ถัดไปมาใน 30 วิอยู่แล้ว
+  # backoff ยาวจะซ้อนกับ tick ใหม่เป็น concurrent ingest)
+  retry_on Ingest::Client::FetchError, wait: 5.seconds, attempts: 2
 
   def perform
     election = Election.current
