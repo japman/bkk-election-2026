@@ -61,3 +61,5 @@ gem "rspec-rails", "~> 8.0", :groups => [:development, :test]
 gem "redis", "~> 5.4"
 
 gem "aws-sdk-s3", "~> 1.225", require: false
+
+gem "rss", "~> 0.3"

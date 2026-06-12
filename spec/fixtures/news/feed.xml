@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Dailynews</title>
+    <item>
+      <title>ข่าวเลือกตั้ง 1</title>
+      <link>https://www.dailynews.co.th/news/1/</link>
+      <pubDate>Sun, 28 Jun 2026 18:45:00 +0700</pubDate>
+    </item>
+    <item>
+      <title>ข่าวเลือกตั้ง 2</title>
+      <link>https://www.dailynews.co.th/news/2/</link>
+      <pubDate>Sun, 28 Jun 2026 19:20:00 +0700</pubDate>
+    </item>
+  </channel>
+</rss>
