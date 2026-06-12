@@ -1,5 +1,6 @@
 # เขียน results.json ทุกครั้งที่ข้อมูลเปลี่ยน (spec §5.4)
-# production → S3 (CloudFront TTL 5 วิ ชี้มาที่ key นี้) | dev/test → public/results.json
+# S3 เมื่อมี SNAPSHOT_BUCKET (CloudFront TTL 5 วิ ชี้มาที่ key นี้)
+# ไม่งั้นเขียน public/ — UAT เครื่องเดียวใช้โหมด disk
 class SnapshotPublisher
   KEY = "results.json"
 
@@ -9,7 +10,7 @@ class SnapshotPublisher
 
   def publish
     json = ResultsSnapshot.new(@election).as_json.to_json
-    if Rails.env.production?
+    if ENV["SNAPSHOT_BUCKET"].present?
       require "aws-sdk-s3"
       Aws::S3::Client.new.put_object(
         bucket: ENV.fetch("SNAPSHOT_BUCKET"), key: KEY, body: json,

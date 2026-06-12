@@ -9,6 +9,11 @@ class IngestPollJob < ApplicationJob
     election = Election.current
     return if election.nil? || election.manual?
 
+    if ENV["ECT_API_URL"].blank?
+      Rails.logger.info("[ingest] ECT_API_URL not configured — skipping poll")
+      return
+    end
+
     parsed = Ingest::EctAdapter.parse(
       Ingest::Client.fetch,
       expected_zone_codes: election.zones.pluck(:code),

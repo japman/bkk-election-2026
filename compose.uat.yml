@@ -10,6 +10,8 @@ services:
       RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
       SOLID_QUEUE_IN_PUMA: "1"          # รัน ingest job ใน puma — เครื่องเดียวพอสำหรับ UAT
       PUBLIC_ORIGIN: http://localhost:3100
+      # ไม่ตั้ง SNAPSHOT_BUCKET → snapshot เขียนลง public/results.json ในเครื่อง (โหมด UAT)
+      # ไม่ตั้ง ECT_API_URL → ingest ข้ามเงียบๆ ทดสอบ realtime ผ่าน admin แทน
     depends_on:
       db:
         condition: service_healthy

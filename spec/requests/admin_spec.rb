@@ -58,6 +58,15 @@ RSpec.describe "Admin panel", type: :request do
       expect(response.body).to include("api")
     end
 
+    it "shows a friendly error when values fail validation" do
+      patch admin_zone_result_path(zone), params: {
+        confirm: "1", stats: { eligible_voters: "100", turnout: "50", bad_ballots: "0",
+                               no_vote: "0", counted_percent: "150" }
+      }
+      expect(response).to redirect_to(edit_admin_zone_result_path(zone))
+      expect(flash[:alert]).to include("บันทึกไม่สำเร็จ")
+    end
+
     it "ignores unknown candidate numbers instead of failing the whole save" do
       patch admin_zone_result_path(zone), params: {
         confirm: "1", votes: { "1" => "777", "999" => "5", "abc" => "9" }

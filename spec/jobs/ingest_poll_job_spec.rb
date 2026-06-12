@@ -6,11 +6,14 @@ RSpec.describe IngestPollJob do
   let(:publisher) { instance_double(SnapshotPublisher, publish: true) }
 
   before do
+    ENV["ECT_API_URL"] = "https://partner.example/results"
     allow(Ingest::Client).to receive(:fetch).and_return(raw)
     allow(SnapshotPublisher).to receive(:new).and_return(publisher)
     allow(ResultsBroadcaster).to receive(:new)
       .and_return(instance_double(ResultsBroadcaster, broadcast_all: true))
   end
+
+  after { ENV.delete("ECT_API_URL") }
 
   it "writes results and stats from the API payload, then publishes snapshot" do
     described_class.perform_now
@@ -34,6 +37,13 @@ RSpec.describe IngestPollJob do
     described_class.perform_now
     expect(publisher).to have_received(:publish)
     expect(Rails.logger).to have_received(:error).with(/broadcast failed/)
+  end
+
+  it "skips quietly when ECT_API_URL is not configured" do
+    ENV.delete("ECT_API_URL")
+    described_class.perform_now
+    expect(VoteResult.count).to eq(0)
+    expect(publisher).not_to have_received(:publish)
   end
 
   it "skips entirely when election is in manual mode (admin override)" do

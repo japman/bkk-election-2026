@@ -27,22 +27,23 @@ RSpec.describe ResultsSnapshot do
 end
 
 RSpec.describe SnapshotPublisher do
-  it "writes results.json to public/ outside production" do
+  it "writes results.json to public/ when SNAPSHOT_BUCKET is not set" do
     e = build_election(zones: 1, candidates: 1)
     path = Rails.public_path.join("results.json")
     FileUtils.rm_f(path)
+    ENV.delete("SNAPSHOT_BUCKET")
 
     SnapshotPublisher.new(e).publish
 
     expect(JSON.parse(path.read)).to have_key("candidates")
   ensure
     FileUtils.rm_f(path)
+    ENV.delete("SNAPSHOT_BUCKET")
   end
 
-  it "puts results.json to S3 in production" do
+  it "puts results.json to S3 when SNAPSHOT_BUCKET is set" do
     e = build_election(zones: 1, candidates: 1)
     s3 = instance_double(Aws::S3::Client)
-    allow(Rails).to receive(:env).and_return(ActiveSupport::StringInquirer.new("production"))
     allow(Aws::S3::Client).to receive(:new).and_return(s3)
     expect(s3).to receive(:put_object).with(
       hash_including(bucket: "test-bucket", key: "results.json",

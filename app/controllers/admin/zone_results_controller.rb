@@ -31,10 +31,15 @@ class Admin::ZoneResultsController < ApplicationController
       }
     end
 
-    changed = ResultWriter.new(zone, source: "manual",
-                               editor: Current.user.email_address,
-                               allow_decrease: true)
-                          .apply!(votes, stats: stats)
+    begin
+      changed = ResultWriter.new(zone, source: "manual",
+                                 editor: Current.user.email_address,
+                                 allow_decrease: true)
+                            .apply!(votes, stats: stats)
+    rescue ActiveRecord::RecordInvalid => e
+      return redirect_to edit_admin_zone_result_path(zone),
+                         alert: "บันทึกไม่สำเร็จ: #{e.record.errors.full_messages.join(', ')}"
+    end
     if changed
       ResultsBroadcaster.new(election).broadcast_all
       SnapshotPublisher.new(election).publish

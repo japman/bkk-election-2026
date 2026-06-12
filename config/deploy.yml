@@ -1,5 +1,5 @@
 service: bkk2026-election
-image: <GITHUB_ORG>/bkk2026-election
+image: ghcr.io/<GITHUB_ORG>/dailynews-election-bkk2026  # ต้องตรงกับ ghcr.io/<org>/<repo> ที่ GitHub Actions push (docker.yml ใช้ github.repository)
 
 servers:
   web:
