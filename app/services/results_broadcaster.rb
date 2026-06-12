@@ -4,7 +4,7 @@ class ResultsBroadcaster
   REGIONS = [
     ["header-status",  "dashboard/header_status"],
     ["leaderboard",    "dashboard/leaderboard"],
-    ["zone-map",       "dashboard/map"],
+    ["zone-map",       "dashboard/map_grid"],
     ["overview-stats", "dashboard/stats"]
   ].freeze
 

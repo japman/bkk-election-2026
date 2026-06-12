@@ -1,0 +1,18 @@
+<% zones = election.zones.includes(:zone_stat, vote_results: :candidate).sort_by(&:code) %>
+<div id="zone-map">
+  <div class="map-grid">
+    <% zones.each do |z| %>
+      <% leader = z.leading_candidate %>
+      <button class="tile" data-zone-code="<%= z.code %>" data-action="zone-detail#show"
+              style="--c: <%= leader&.color || '#C9CFD6' %>; grid-column: <%= z.grid_col %>; grid-row: <%= z.grid_row %>"
+              aria-label="เขต<%= z.name %><%= " ผู้นำคะแนน: #{leader.name}" if leader %>">
+        <span><%= z.name %></span>
+      </button>
+    <% end %>
+  </div>
+  <div class="legend">
+    <% election.leaderboard.first(3).each do |c| %>
+      <span><i style="background: <%= c.color %>"></i><%= c.name %> นำ</span>
+    <% end %>
+  </div>
+</div>
