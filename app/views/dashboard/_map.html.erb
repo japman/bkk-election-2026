@@ -1,0 +1,33 @@
+<% zones = election.zones.includes(:zone_stat, vote_results: :candidate).sort_by(&:code) %>
+<section class="card sec-map" id="zone-map" data-controller="zone-detail">
+  <div class="card-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+    <h2>ผลนำรายเขต — 50 เขต</h2>
+    <span class="hint">แตะเขตเพื่อดูคะแนน</span>
+  </div>
+  <div class="map-body">
+    <div class="map-grid">
+      <% zones.each do |z| %>
+        <% leader = z.leading_candidate %>
+        <button class="tile" data-zone-code="<%= z.code %>" data-action="zone-detail#show"
+                style="--c: <%= leader&.color || '#C9CFD6' %>; grid-column: <%= z.grid_col %>; grid-row: <%= z.grid_row %>"
+                aria-label="เขต<%= z.name %><%= " ผู้นำคะแนน: #{leader.name}" if leader %>">
+          <span><%= z.name %></span>
+        </button>
+      <% end %>
+    </div>
+    <div class="legend">
+      <% election.leaderboard.first(3).each do |c| %>
+        <span><i style="background: <%= c.color %>"></i><%= c.name %> นำ</span>
+      <% end %>
+    </div>
+    <div class="zone-detail" data-zone-detail-target="panel">
+      <div class="zd-head">
+        <h3 data-zone-detail-target="name"></h3>
+        <span class="zd-counted num" data-zone-detail-target="counted"></span>
+        <button type="button" class="zd-close" data-action="zone-detail#hide" aria-label="ปิดรายละเอียดเขต">✕</button>
+      </div>
+      <div data-zone-detail-target="rows"></div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,13 @@
+<div class="head-status" id="header-status">
+  <div class="counted">
+    <div class="label">
+      <span>นับคะแนนแล้ว</span>
+      <b class="num" data-live="counted-pct"><%= election.counted_percent %>%</b>
+    </div>
+    <div class="bar"><i style="width: <%= election.counted_percent %>%"></i></div>
+  </div>
+  <span style="font-size: 12px; color: var(--muted)">อัปเดต
+    <b class="num" data-live="updated-at"><%= Time.current.strftime("%H:%M:%S") %> น.</b>
+  </span>
+  <div class="live"><span class="dot"></span>LIVE</div>
+</div>

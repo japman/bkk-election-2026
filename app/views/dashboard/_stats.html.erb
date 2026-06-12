@@ -1,0 +1,31 @@
+<% summary = election.stats_summary %>
+<% ballots = summary[:turnout] %>
+<section class="card sec-chart" id="overview-stats">
+  <div class="card-head">
+    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/></svg>
+    <h2>สถิติภาพรวม</h2>
+  </div>
+  <div class="grid">
+    <div class="stat t">
+      <div class="s-label">ผู้มาใช้สิทธิ (จากหน่วยที่นับแล้ว)</div>
+      <div class="s-value num" data-live="turnout-pct"><%= summary[:eligible].zero? ? "–" : "#{(ballots * 100.0 / summary[:eligible]).round(1)}%" %></div>
+      <div class="s-sub num"><%= number_with_delimiter(ballots) %> คน</div>
+    </div>
+    <div class="stat">
+      <div class="s-label">บัตรเสีย</div>
+      <div class="s-value num"><%= ballots.zero? ? "–" : "#{(summary[:bad_ballots] * 100.0 / ballots).round(1)}%" %></div>
+      <div class="s-sub">ของบัตรทั้งหมดที่นับแล้ว</div>
+    </div>
+    <div class="stat">
+      <div class="s-label">ไม่ประสงค์ลงคะแนน</div>
+      <div class="s-value num"><%= ballots.zero? ? "–" : "#{(summary[:no_vote] * 100.0 / ballots).round(1)}%" %></div>
+      <div class="s-sub">ของบัตรทั้งหมดที่นับแล้ว</div>
+    </div>
+  </div>
+  <div class="chart-box">
+    <div class="c-title">คะแนนสะสม 3 อันดับแรก</div>
+    <svg class="chart-svg" data-controller="trend-chart" viewBox="0 0 600 200" preserveAspectRatio="none"
+         role="img" aria-label="กราฟคะแนนสะสมของผู้สมัคร 3 อันดับแรก"></svg>
+    <div class="chart-legend" id="chart-legend"></div>
+  </div>
+</section>

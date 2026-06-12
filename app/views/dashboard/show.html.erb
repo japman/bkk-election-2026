@@ -1,0 +1,13 @@
+<% if @election.nil? %>
+  <main class="wrap"><p>ยังไม่เปิดรายงานผล</p></main>
+<% else %>
+  <%= render "site_header", election: @election %>
+  <%= render "hero", election: @election %>
+  <main class="wrap" data-controller="live-flash fallback">
+    <%= render "leaderboard", election: @election %>
+    <%= render "map", election: @election %>
+    <%= render "stats", election: @election %>
+    <%= render "news" %>
+  </main>
+  <footer>ผลคะแนนอย่างไม่เป็นทางการ — รวบรวมโดยทีมข่าวเดลินิวส์</footer>
+<% end %>
