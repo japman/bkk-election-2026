@@ -1,0 +1,31 @@
+# Dev backing services — รัน Postgres + Redis ให้ตรงกับ config/database.yml และ config/cable.yml
+# ตัว Rails รันบน host ด้วย bin/dev (live reload / importmap) ไม่ต้องใส่ใน compose
+#   docker compose up -d        # สตาร์ท db + redis
+#   bin/rails db:prepare        # ครั้งแรก: สร้าง+seed
+#   bin/dev                     # http://localhost:3000
+#   docker compose down         # หยุด (ข้อมูลยังอยู่ใน volume)
+services:
+  db:
+    image: postgres:17
+    ports:
+      - "5433:5432"             # database.yml dev: host localhost port 5433
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      retries: 15
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"             # cable.yml dev: redis://localhost:6379/1
+    volumes:
+      - redis_data:/data
+
+volumes:
+  pg_data:
+  redis_data:
