@@ -36,14 +36,24 @@ env:
     - AWS_ACCESS_KEY_ID
     - AWS_SECRET_ACCESS_KEY
 
-# UAT แบบไม่มี RDS: เปิด accessories ด้านล่างแล้วชี้ DATABASE_URL/REDIS_URL มาที่นี่
-# accessories:
-#   db:
-#     image: postgres:17
-#     host: <SERVER_IP>
-#     env:
-#       secret: [POSTGRES_PASSWORD]
-#     directories: [data:/var/lib/postgresql/data]
-#   redis:
-#     image: redis:7
-#     host: <SERVER_IP>
+# UAT ไม่มี RDS: Kamal รัน Postgres + Redis บน server เดียวกัน
+# app เชื่อมผ่าน network "kamal" ด้วยชื่อ container: bkk2026-election-db / bkk2026-election-redis
+# (DATABASE_URL/REDIS_URL ประกอบไว้ใน .kamal/secrets แล้ว ไม่ publish port ออกนอก = ปลอดภัย)
+accessories:
+  db:
+    image: postgres:17
+    host: 159.138.241.201
+    env:
+      clear:
+        POSTGRES_USER: bkk2026
+        POSTGRES_DB: bkk2026_production
+      secret:
+        - POSTGRES_PASSWORD
+    directories:
+      - data:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+    host: 159.138.241.201
+    cmd: redis-server --appendonly yes
+    directories:
+      - data:/data
