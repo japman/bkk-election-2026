@@ -22,6 +22,10 @@ registry:
 
 builder:
   arch: amd64
+  # build บน server โดยตรง (amd64 native — เร็ว ไม่ต้อง emulate) แทน build บน Mac arm64
+  # เลี่ยงปัญหา Rancher Desktop buildkit resolve ghcr.io DNS ไม่ได้
+  remote: ssh://root@159.138.241.201
+  local: false
 
 env:
   clear:
