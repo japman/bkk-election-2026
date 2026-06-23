@@ -44,3 +44,6 @@
 # Kamal deploy secrets (never commit)
 .kamal/secrets
 .kamal/secrets-*
+.kamal/*.crt
+.kamal/*.key
+.kamal/*.pem

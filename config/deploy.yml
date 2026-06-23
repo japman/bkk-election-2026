@@ -4,15 +4,19 @@ image: ghcr.io/japman/bkk-election-2026  # ตรงกับ ghcr.io/<org>/<rep
 servers:
   web:
     hosts:
-      - <SERVER_IP>
+      - 159.138.241.201
 
 proxy:
-  ssl: true
-  host: <ELECTION_DOMAIN>          # เช่น uat-election.dailynews.co.th
+  # Cloudflare เป็นตัว terminate SSL (Full strict) → ใช้ Cloudflare Origin Certificate แทน Let's Encrypt
+  ssl:
+    certificate_pem: CF_ORIGIN_CERT      # ใส่ใน .kamal/secrets (เนื้อ cert จาก Cloudflare > SSL/TLS > Origin Server)
+    private_key_pem: CF_ORIGIN_KEY        # ใส่ใน .kamal/secrets (private key คู่กับ cert)
+  host: bkk-election-2026.dailynews.co.th
+  forward_headers: true                   # ให้ X-Forwarded-* จาก Cloudflare ส่งต่อถึง Rails (client IP จริง)
 
 registry:
   server: ghcr.io
-  username: <GITHUB_USERNAME>
+  username: admin-uat
   password:
     - KAMAL_REGISTRY_PASSWORD      # GitHub PAT scope write:packages — ใส่ใน .kamal/secrets
 
