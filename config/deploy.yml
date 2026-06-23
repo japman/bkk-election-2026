@@ -1,5 +1,5 @@
 service: bkk2026-election
-image: ghcr.io/japman/bkk-election-2026  # ตรงกับ ghcr.io/<org>/<repo> ที่ GitHub Actions push (docker.yml ใช้ github.repository — remote จริงคือ japman/bkk-election-2026)
+image: japman/bkk-election-2026  # Kamal จะเติม registry.server (ghcr.io) ให้เอง → ghcr.io/japman/bkk-election-2026 (อย่าใส่ ghcr.io ซ้ำ)
 
 servers:
   web:
