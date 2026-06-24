@@ -69,4 +69,20 @@ RSpec.describe IngestPollJob do
     expect { described_class.perform_now }.not_to raise_error
     expect(VoteResult.count).to eq(0)
   end
+
+  it "ingests council results into per-zone candidates" do
+    council = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    z = council.zones.create!(code: "40", name: "ก", grid_col: 1, grid_row: 1)
+    c2 = council.candidates.create!(number: 2, name: "win", color: "#111", zone: z, external_id: "u2")
+    ENV["ECT_API_URL"] = "https://media.election.in.th/api/media/elections/bkk-governor-2026"
+    payload = { "success" => true, "data" => { "areas" => [
+      { "area_number" => 40, "results" => [{ "candidate_id" => "u2", "votes" => 6000 }],
+        "metadata" => { "total_eligible_voters" => 9000, "total_votes" => 6500, "invalid_votes" => 30,
+                        "no_votes" => 10, "coverage_percentage" => 85.0 } }] }, "source" => { "selected" => "final" } }
+    allow(Ingest::Client).to receive(:fetch_results).with("bkk-council-2026").and_return(payload)
+    allow(SnapshotPublisher).to receive(:new).and_return(instance_double(SnapshotPublisher, publish: true))
+    allow(ResultsBroadcaster).to receive(:new).and_return(instance_double(ResultsBroadcaster, broadcast_all: true))
+    described_class.perform_now("council")
+    expect(c2.vote_results.sum(:votes)).to eq(6000)
+  end
 end

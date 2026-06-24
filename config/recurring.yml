@@ -17,7 +17,13 @@ production:
   # ดึงผลคะแนนจาก API พาร์ทเนอร์ทุก 30 วินาที
   ingest_poll:
     class: IngestPollJob
+    args: [ "governor" ]
     queue: default
+    schedule: every 30 seconds
+
+  ingest_poll_council:
+    class: IngestPollJob
+    args: [ "council" ]
     schedule: every 30 seconds
 
 development:
