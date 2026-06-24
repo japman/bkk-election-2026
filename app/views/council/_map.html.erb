@@ -1,0 +1,9 @@
+<% zones = election.zones.includes(:zone_stat, vote_results: :candidate).sort_by(&:code) %>
+<div id="council-map"><div class="map-grid">
+  <% zones.each do |z|
+       w = z.vote_results.max_by(&:votes)&.candidate %>
+    <button class="tile" data-zone-code="<%= z.code %>" data-action="council#show"
+            style="--c: <%= w&.color || '#C9CFD6' %>; grid-column: <%= z.grid_col %>; grid-row: <%= z.grid_row %>"
+            aria-label="เขต<%= z.name %><%= " ผู้ชนะ #{w.name}" if w %>"><span><%= z.name %></span></button>
+  <% end %>
+</div></div>
