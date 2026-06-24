@@ -64,7 +64,7 @@ gem "aws-sdk-s3", "~> 1.225", require: false
 
 gem "rss", "~> 0.3"
 
-gem "kamal", "~> 2.11", group: :development, require: false
+gem "kamal", "~> 2.12", group: :development, require: false
 
 gem "webmock", "~> 3.26", :group => :test
 
