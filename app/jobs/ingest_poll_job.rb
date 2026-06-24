@@ -43,7 +43,7 @@ class IngestPollJob < ApplicationJob
       end
     end
 
-    if changed
+    if changed && kind == "governor"
       begin
         ResultsBroadcaster.new(election).broadcast_all
       rescue StandardError => e

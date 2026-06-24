@@ -505,3 +505,11 @@ html[data-theme="dark"] .flash-msg.alert{
 .seat-row i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
 .seat-row b{font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums}
 .zd-row.winner{font-weight:700;background:color-mix(in srgb, var(--c,#0E7A3D) 10%, #fff)}
+
+/* ============ Election tabs ============ */
+.election-tabs{display:flex;gap:8px;margin:10px 0}
+.election-tabs a{padding:6px 14px;border-radius:8px;text-decoration:none;color:var(--muted,#6b7280)}
+.election-tabs a.active{background:var(--c,#0E7A3D);color:#fff;font-weight:700}
+
+/* ============ Council zone-detail scroll cap ============ */
+.zone-detail [data-council-target="rows"]{max-height:46vh;overflow-y:auto}

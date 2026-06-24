@@ -85,4 +85,30 @@ RSpec.describe IngestPollJob do
     described_class.perform_now("council")
     expect(c2.vote_results.sum(:votes)).to eq(6000)
   end
+
+  it "does NOT invoke ResultsBroadcaster when a council poll changes data" do
+    council = Election.create!(name: "C2", election_date: Date.new(2026, 6, 28), kind: "council")
+    z = council.zones.create!(code: "40", name: "ก", grid_col: 1, grid_row: 1)
+    council.candidates.create!(number: 2, name: "win", color: "#111", zone: z, external_id: "u2")
+    ENV["ECT_API_URL"] = "https://media.election.in.th/api/media/elections/bkk-governor-2026"
+    payload = { "success" => true, "data" => { "areas" => [
+      { "area_number" => 40, "results" => [{ "candidate_id" => "u2", "votes" => 7000 }],
+        "metadata" => { "total_eligible_voters" => 9000, "total_votes" => 7200, "invalid_votes" => 20,
+                        "no_votes" => 5, "coverage_percentage" => 90.0 } }] }, "source" => { "selected" => "final" } }
+    allow(Ingest::Client).to receive(:fetch_results).with("bkk-council-2026").and_return(payload)
+    allow(SnapshotPublisher).to receive(:new).and_return(instance_double(SnapshotPublisher, publish: true))
+    broadcaster_double = instance_double(ResultsBroadcaster, broadcast_all: true)
+    allow(ResultsBroadcaster).to receive(:new).and_return(broadcaster_double)
+
+    described_class.perform_now("council")
+
+    expect(broadcaster_double).not_to have_received(:broadcast_all)
+  end
+
+  it "still broadcasts when a governor poll changes data" do
+    broadcaster_double = instance_double(ResultsBroadcaster, broadcast_all: true)
+    allow(ResultsBroadcaster).to receive(:new).and_return(broadcaster_double)
+    described_class.perform_now
+    expect(broadcaster_double).to have_received(:broadcast_all)
+  end
 end
