@@ -1,4 +1,3 @@
-# spec/jobs/ingest_poll_job_spec.rb  (key changes)
 require "rails_helper"
 
 RSpec.describe IngestPollJob do
@@ -7,8 +6,14 @@ RSpec.describe IngestPollJob do
   let(:candidates_fixture) { JSON.parse(Rails.root.join("spec/fixtures/ingest/ect_candidates.json").read) }
   let(:publisher) { instance_double(SnapshotPublisher, publish: true) }
 
-  before do
+  around do |ex|
+    old_url = ENV["ECT_API_URL"]; old_tok = ENV["ECT_API_TOKEN"]
     ENV["ECT_API_URL"] = "https://media.election.in.th/api/media/elections/bkk-governor-2026"
+    ex.run
+    ENV["ECT_API_URL"] = old_url; ENV["ECT_API_TOKEN"] = old_tok
+  end
+
+  before do
     # seed the 18 real candidates with external_ids so candidate_map resolves
     candidates_fixture.dig("data", "candidates").each do |c|
       election.candidates.create!(number: c["number"], name: c["name"],
@@ -43,5 +48,25 @@ RSpec.describe IngestPollJob do
     ENV["ECT_API_URL"] = ""
     expect(Ingest::Client).not_to receive(:fetch_results)
     described_class.perform_now
+  end
+
+  it "skips entirely when the election is in manual mode" do
+    election.update!(data_mode: "manual")
+    expect(Ingest::Client).not_to receive(:fetch_results)
+    described_class.perform_now
+  end
+
+  it "still publishes the snapshot when broadcasting fails" do
+    broadcaster = instance_double(ResultsBroadcaster)
+    allow(ResultsBroadcaster).to receive(:new).and_return(broadcaster)
+    allow(broadcaster).to receive(:broadcast_all).and_raise(StandardError, "broadcast boom")
+    expect { described_class.perform_now }.not_to raise_error
+    expect(publisher).to have_received(:publish)
+  end
+
+  it "rejects an invalid payload and writes nothing" do
+    allow(Ingest::Client).to receive(:fetch_results).and_return({ "success" => false })
+    expect { described_class.perform_now }.not_to raise_error
+    expect(VoteResult.count).to eq(0)
   end
 end
