@@ -18,7 +18,9 @@ RSpec.describe "ect:sync_candidates", type: :task do
     c7 = election.candidates.find_by(number: 7)
     expect(c7.external_id).to eq("4ca853a4-c99e-39d9-a519-b5697be547f8")
     expect(c7.party).to eq("อิสระ")
-    expect(c7.color).to eq("#888888")
+    # independent's grey party color (#888888) is replaced by a distinct palette
+    # color (number 7 → palette index 6) so the map/leaderboard stay readable
+    expect(c7.color).to eq("#0CA678")
   end
 
   it "is idempotent on re-run" do
