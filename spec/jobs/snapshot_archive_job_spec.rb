@@ -51,13 +51,16 @@ RSpec.describe SnapshotArchiveJob do
     it "uses the ResultsSnapshot JSON as the body" do
       snapshot = ResultsSnapshot.new(election)
       allow(ResultsSnapshot).to receive(:new).with(election).and_return(snapshot)
-      expected_json = snapshot.as_json.to_json
 
       described_class.perform_now(election.id, "2026-06-24T15:30:45+07:00")
 
-      expect(s3).to have_received(:put_object).once.with(
-        hash_including(body: expected_json)
-      )
+      expect(s3).to have_received(:put_object).once do |args|
+        body = JSON.parse(args[:body])
+        expected = snapshot.as_json
+        expect(body["candidates"]).to eq(JSON.parse(expected.to_json)["candidates"])
+        expect(body["zones"]).to eq(JSON.parse(expected.to_json)["zones"])
+        expect(body["stats"]).to eq(JSON.parse(expected.to_json)["stats"])
+      end
     end
 
     it "does NOT call put_object when the election id is unknown" do

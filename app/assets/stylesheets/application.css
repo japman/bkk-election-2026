@@ -496,3 +496,5 @@ html[data-theme="dark"] .flash-msg.alert{
 .avatar-img{ object-fit:cover; background:#fff; }
 .party-logo{ width:18px; height:18px; border-radius:3px; object-fit:contain; vertical-align:-3px; margin-right:4px; }
 .zd-photo{ width:28px; height:28px; border-radius:50%; object-fit:cover; flex:0 0 auto; }
+.zd-stats{ font-size:12px; color:var(--muted,#6b7280); margin:6px 0 10px; line-height:1.5; }
+.zone-detail [data-zone-detail-target="rows"]{ max-height:46vh; overflow-y:auto; }

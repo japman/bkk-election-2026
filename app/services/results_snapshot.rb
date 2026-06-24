@@ -17,11 +17,14 @@ class ResultsSnapshot
           percent: total.zero? ? 0.0 : (c.total_votes * 100.0 / total).round(1) }
       end,
       zones: @election.zones.order(:code).includes(:zone_stat, vote_results: :candidate).map do |z|
-        top = z.vote_results.sort_by { |r| -r.votes }.first(3)
+        ranked = z.vote_results.sort_by { |r| -r.votes }
+        st = z.zone_stat
         { code: z.code, name: z.name,
-          leader_number: top.first&.candidate&.number,
-          counted_percent: z.zone_stat&.counted_percent.to_f,
-          top: top.map { |r| { number: r.candidate.number, votes: r.votes } } }
+          leader_number: ranked.first&.candidate&.number,
+          counted_percent: st&.counted_percent.to_f,
+          stats: { eligible_voters: st&.eligible_voters.to_i, turnout: st&.turnout.to_i,
+                   bad_ballots: st&.bad_ballots.to_i, no_vote: st&.no_vote.to_i },
+          results: ranked.map { |r| { number: r.candidate.number, votes: r.votes } } }
       end
     }
   end
