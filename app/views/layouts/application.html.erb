@@ -8,6 +8,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
     <%= csp_meta_tag %>
+    <meta name="snapshot-cdn" content="<%= ENV['SNAPSHOT_CDN_URL'] %>">
 
     <script>
       // ตั้งธีมก่อน paint แรก กันจอวาบ — ค่าที่ user เลือก > ค่าตามระบบ

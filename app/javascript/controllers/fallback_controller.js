@@ -1,5 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
+const cdnBase = () => document.querySelector('meta[name="snapshot-cdn"]')?.content || ""
+
 // ตาข่ายนิรภัย (spec §7): ถ้าไม่มี Turbo Stream เข้ามาเกิน staleAfter
 // ให้ poll results.json (ผ่าน CDN ใน production) ทุก interval มาอัปเดตตัวเลขแทน
 // — Turbo ต่อ WebSocket ใหม่เองเบื้องหลัง เมื่อ stream กลับมา fallback จะหยุดเอง
@@ -27,7 +29,7 @@ export default class extends Controller {
   async maybePoll() {
     if (Date.now() - this.lastStream < this.staleAfterValue) return
     try {
-      const res = await fetch(this.urlValue, { cache: "no-store" })
+      const res = await fetch(`${cdnBase()}${this.urlValue}`, { cache: "no-store" })
       if (!res.ok) return
       this.patch(await res.json())
     } catch { /* เครือข่ายล้ม — รอบหน้าลองใหม่ */ }

@@ -1,5 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
+const cdnBase = () => document.querySelector('meta[name="snapshot-cdn"]')?.content || ""
+
 // กราฟคะแนนสะสม 3 อันดับแรก — ดึงจุดใหม่จาก results.json ทุก 30 วิ
 // history อยู่ระดับ module เพื่อรอดตอน Turbo Stream replace #overview-stats
 // (Stimulus controller โดน disconnect/reconnect ทุก broadcast)
@@ -17,7 +19,7 @@ export default class extends Controller {
 
   async poll() {
     try {
-      const res = await fetch("/results.json", { cache: "no-store" })
+      const res = await fetch(`${cdnBase()}/results.json`, { cache: "no-store" })
       if (!res.ok) return
       const data = await res.json()
       const top3 = data.candidates.slice(0, 3)

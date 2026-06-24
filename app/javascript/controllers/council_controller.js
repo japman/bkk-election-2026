@@ -1,11 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
+const cdnBase = () => document.querySelector('meta[name="snapshot-cdn"]')?.content || ""
+
 export default class extends Controller {
   static targets = ["panel", "name", "counted", "rows"]
 
   async show(e) {
     const code = e.currentTarget.dataset.zoneCode
-    const res = await fetch("/results-council.json", { cache: "no-store" })
+    const res = await fetch(`${cdnBase()}/results-council.json`, { cache: "no-store" })
     if (!res.ok) return
     const data = await res.json()
     const d = (data.districts || []).find(x => x.code === code)

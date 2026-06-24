@@ -1,5 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
+const cdnBase = () => document.querySelector('meta[name="snapshot-cdn"]')?.content || ""
+
 // คลิกเขตบนแผนที่ → ดึง top 3 ของเขตจาก results.json มาแสดงใน panel
 export default class extends Controller {
   static targets = ["panel", "name", "counted", "stats", "rows"]
@@ -30,7 +32,7 @@ export default class extends Controller {
 
   async render(code) {
     try {
-      const res = await fetch("/results.json", { cache: "no-store" })
+      const res = await fetch(`${cdnBase()}/results.json`, { cache: "no-store" })
       if (!res.ok) return
       const data = await res.json()
       const zone = data.zones.find(z => z.code === code)
