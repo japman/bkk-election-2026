@@ -1,0 +1,4 @@
+<nav class="election-tabs">
+  <%= link_to "ผู้ว่าฯ", root_path, class: ("active" if current_page?(root_path)) %>
+  <%= link_to "สก", council_path, class: ("active" if current_page?(council_path)) %>
+</nav>
