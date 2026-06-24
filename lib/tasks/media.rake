@@ -38,8 +38,8 @@ namespace :media do
         url = MediaSync.store(Drive::FolderClient.download(f[:id]), "candidates", number.to_s, m[2].downcase)
         candidate.update!(photo_url: url)
         photos += 1
-      rescue Drive::FolderClient::Error => e
-        Rails.logger.error("[media] photo #{f[:name]} failed: #{e.message}")
+      rescue StandardError => e
+        Rails.logger.error("[media] photo #{f[:name]} failed: #{e.class}: #{e.message}")
       end
     end
 
@@ -52,8 +52,8 @@ namespace :media do
       begin
         url = MediaSync.store(Drive::FolderClient.download(f[:id]), "parties", MediaSync.slug(stem), ext.downcase)
         logo_map[MediaSync.normalize(stem)] = url
-      rescue Drive::FolderClient::Error => e
-        Rails.logger.error("[media] logo #{f[:name]} failed: #{e.message}")
+      rescue StandardError => e
+        Rails.logger.error("[media] logo #{f[:name]} failed: #{e.class}: #{e.message}")
       end
     end
 
