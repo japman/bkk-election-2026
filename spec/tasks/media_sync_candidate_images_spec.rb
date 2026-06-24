@@ -42,4 +42,24 @@ RSpec.describe "media:sync_candidate_images", type: :task do
     expect(Dir[tmp_public.join("images/parties/*")].map { |f| File.basename(f) })
       .not_to include(".DS_Store", "Thumbs.db")
   end
+
+  describe "council mode" do
+    let(:tmp_public) { Pathname(Dir.mktmpdir) }
+
+    after { FileUtils.remove_entry(tmp_public) if tmp_public.exist? }
+
+    it "imports council photos into per-zone subfolders" do
+      council = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+      z = council.zones.create!(code: "01", name: "ก", grid_col: 1, grid_row: 1)
+      c = council.candidates.create!(number: 3, name: "x", color: "#111", zone: z)
+      allow(Rails).to receive(:public_path).and_return(tmp_public)
+      allow(Drive::FolderClient).to receive(:list).with(MediaSync::COUNCIL_FOLDER)
+        .and_return([{ id: "p", name: "BKK-01-03.png" }, { id: "x", name: ".DS_Store" }])
+      allow(Drive::FolderClient).to receive(:download).and_return(png)
+      Rake::Task["media:sync_candidate_images"].reenable
+      Rake::Task["media:sync_candidate_images"].invoke("council")
+      expect(c.reload.photo_url).to eq("/images/council/01/3.png")
+      expect(tmp_public.join("images/council/01/3.png").exist?).to be true
+    end
+  end
 end
