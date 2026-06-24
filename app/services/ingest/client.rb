@@ -6,8 +6,8 @@ module Ingest
     class FetchError < StandardError; end
 
     class << self
-      def fetch_results = get("/auto?level=area")
-      def fetch_candidates = get("/auto/candidates")
+      def fetch_results(slug = nil) = get("#{election_base(slug)}/auto?level=area")
+      def fetch_candidates(slug = nil, page: 1) = get("#{election_base(slug)}/auto/candidates?page=#{page}")
 
       private
 
@@ -34,8 +34,16 @@ module Ingest
         raw.to_s.split(",").map(&:strip).reject(&:empty?)
       end
 
-      def request(path, token)
-        uri = URI("#{ENV.fetch('ECT_API_URL')}#{path}")
+      # Governor uses ECT_API_URL (full election base). For another election, swap the
+      # slug on the same host.
+      def election_base(slug)
+        base = ENV.fetch("ECT_API_URL")
+        return base if slug.nil?
+        base.sub(%r{/elections/[^/]+\z}, "/elections/#{slug}")
+      end
+
+      def request(url, token)
+        uri = URI(url)
         response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
                                    open_timeout: 5, read_timeout: 10) do |http|
           req = Net::HTTP::Get.new(uri)

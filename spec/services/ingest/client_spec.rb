@@ -24,7 +24,7 @@ RSpec.describe Ingest::Client do
 
   it "fetches candidates" do
     %w[tok-a tok-b].each do |t|
-      stub_request(:get, "#{base}/auto/candidates")
+      stub_request(:get, "#{base}/auto/candidates?page=1")
         .with(headers: { "Authorization" => "Bearer #{t}" })
         .to_return(status: 200, body: { success: true, data: { candidates: [] } }.to_json)
     end
@@ -71,5 +71,13 @@ RSpec.describe Ingest::Client do
     ENV.delete("ECT_API_TOKENS"); ENV.delete("ECT_API_TOKEN")
     expect { described_class.fetch_results }
       .to raise_error(Ingest::Client::FetchError, /no ECT API token/)
+  end
+
+  it "fetches results for an explicit election slug" do
+    ENV["ECT_API_TOKENS"] = "tok-a"
+    stub_request(:get, "https://media.election.in.th/api/media/elections/bkk-council-2026/auto?level=area")
+      .with(headers: { "Authorization" => "Bearer tok-a" })
+      .to_return(status: 200, body: { success: true, data: { areas: [] } }.to_json)
+    expect(described_class.fetch_results("bkk-council-2026")).to include("success" => true)
   end
 end
