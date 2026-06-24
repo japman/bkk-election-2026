@@ -41,7 +41,7 @@
         <% board.drop(3).each_with_index do |c, i| %>
           <tr>
             <td><span class="mini-no num" style="background: <%= c.color %>"><%= c.number %></span><%= i + 4 %>. <%= c.name %></td>
-            <td style="color: var(--muted)"><%= c.party %></td>
+            <td style="color: var(--muted)"><% if c.party_logo_url.present? %><img class="party-logo" src="<%= c.party_logo_url %>" alt="" loading="lazy"><% end %><%= c.party %></td>
             <td><span class="v num" data-live="votes-<%= c.number %>"><%= number_with_delimiter(c.total_votes) %></span></td>
           </tr>
         <% end %>
