@@ -28,9 +28,30 @@ RSpec.describe ResultsSnapshot do
 
     z1 = snap[:zones].find { |z| z[:code] == "01" }
     expect(z1[:leader_number]).to eq(1)
-    expect(z1[:top]).to eq([ { number: 1, votes: 100 }, { number: 2, votes: 60 } ])
+    expect(z1[:results]).to eq([ { number: 1, votes: 100 }, { number: 2, votes: 60 } ])
     expect(snap[:zones].size).to eq(2)
     expect(snap[:zones].map { |z| z[:code] }).to eq(%w[01 02])
+  end
+
+  it "includes full per-zone results (all candidates) and zone stats" do
+    e = build_election(zones: 1, candidates: 4)
+    zone = e.zones.first
+    e.candidates.order(:number).each_with_index do |c, i|
+      VoteResult.create!(zone: zone, candidate: c, votes: (i + 1) * 100)
+    end
+    ZoneStat.create!(zone: zone, eligible_voters: 5000, turnout: 3000,
+                     bad_ballots: 40, no_vote: 20, counted_percent: 80.0)
+    z = described_class.new(e).as_json[:zones].first
+    expect(z[:results].size).to eq(4)                       # all candidates, not capped at 3
+    expect(z[:results].map { |r| r[:votes] }).to eq([400, 300, 200, 100]) # desc
+    expect(z[:stats]).to eq(eligible_voters: 5000, turnout: 3000, bad_ballots: 40, no_vote: 20)
+    expect(z).not_to have_key(:top)
+  end
+
+  it "renders zone stats as 0 when the zone has no zone_stat" do
+    e = build_election(zones: 1, candidates: 1)
+    z = described_class.new(e).as_json[:zones].first
+    expect(z[:stats]).to eq(eligible_voters: 0, turnout: 0, bad_ballots: 0, no_vote: 0)
   end
 end
 
