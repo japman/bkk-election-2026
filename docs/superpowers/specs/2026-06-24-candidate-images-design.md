@@ -92,9 +92,11 @@ Add `photo_url: c.photo_url, party_logo_url: c.party_logo_url` to each `candidat
 - Reuse-ready: folder IDs configurable so Sub-project B can import ภาพ ส.ก. with the same `Drive::FolderClient` + task pattern.
 
 ## Rollout
-1. Run `rake media:sync_candidate_images` locally → downloads + optimizes into `public/images/`, and sets `photo_url`/`party_logo_url` on the dev DB candidates.
-2. Commit the generated `public/images/...` files (the deploy artifact).
+1. Run `rake media:sync_candidate_images` locally → downloads into `public/images/` and sets `photo_url`/`party_logo_url` on the dev DB candidates. (Done: 18 photos + 10 party logos committed; 3 party candidates matched, the rest are independents with no logo.)
+2. Commit the generated `public/images/...` files (the deploy artifact — they ship in the Docker image and are served by the app/kamal-proxy).
 3. Deploy.
-4. Run `rake media:sync_candidate_images` once in production (same operational pattern as `ect:sync_candidates`) to populate the URL columns on the production candidates. The task is idempotent and reuses the already-shipped files (re-downloading from Drive is harmless but not required for URL population).
+4. Run `rake media:sync_candidate_images` once in production to populate the URL columns on the production DB candidates. NOTE: the current task re-downloads from Drive each run, so the production run requires outbound access to `drive.google.com` / `drive.usercontent.google.com` at run time. (The Kamal container filesystem is ephemeral, but the images ship committed in the image, so only the URL columns need populating — re-running after each deploy is not required for the files, only after a fresh DB.) A future optimization could set URLs from the already-shipped files without re-downloading.
+
+**Live-verified mechanics:** `uc?export=download` returns a 303 to `drive.usercontent.google.com` (the client follows redirects); folder filenames are UTF-8 (Thai), so the listing is re-tagged UTF-8; per-item failures are logged and skipped so one bad file never aborts the import.
 
 **Decision (no convention fallback):** `photo_url`/`party_logo_url` are the single source of truth, set by the task and read directly by `ResultsSnapshot`. When a value is nil (e.g. candidate not yet synced, or independent party with no logo), the UI falls back to the letter-avatar / no-logo. `ResultsSnapshot` does NOT derive paths by convention — nil simply means "no image", keeping fallback behavior uniform and explicit.
