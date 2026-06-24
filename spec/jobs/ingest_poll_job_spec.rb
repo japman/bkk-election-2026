@@ -60,6 +60,12 @@ RSpec.describe IngestPollJob do
     expect(Rails.logger).to have_received(:error).with(/rejected/)
   end
 
+  it "enqueues SnapshotArchiveJob with the election id after a successful poll" do
+    include ActiveJob::TestHelper
+    expect { described_class.perform_now }
+      .to have_enqueued_job(SnapshotArchiveJob).with(election.id, anything)
+  end
+
   it "skips a zone whose votes decreased but applies the rest" do
     described_class.perform_now
     lowered = JSON.parse(raw)
