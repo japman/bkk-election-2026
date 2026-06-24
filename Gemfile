@@ -67,3 +67,5 @@ gem "rss", "~> 0.3"
 gem "kamal", "~> 2.11", group: :development, require: false
 
 gem "webmock", "~> 3.26", :group => :test
+
+gem "dotenv-rails", "~> 3.2", :groups => [:development, :test]

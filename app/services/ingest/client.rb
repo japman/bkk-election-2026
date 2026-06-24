@@ -11,14 +11,37 @@ module Ingest
 
       private
 
+      # Try each configured API token in randomized order (to spread load across
+      # keys and increase the effective rate limit). On any failure (incl. 429),
+      # fall through to the next token. Raise only when every token fails.
       def get(path)
+        tokens = api_tokens
+        raise FetchError, "no ECT API token configured (set ECT_API_TOKENS)" if tokens.empty?
+
+        errors = []
+        tokens.shuffle.each do |token|
+          return request(path, token)
+        rescue FetchError => e
+          errors << e.message
+        end
+        raise FetchError, "all #{tokens.size} ECT token(s) failed: #{errors.join(' | ')}"
+      end
+
+      # Comma-separated ECT_API_TOKENS (preferred); falls back to the legacy
+      # single ECT_API_TOKEN.
+      def api_tokens
+        raw = ENV["ECT_API_TOKENS"].presence || ENV["ECT_API_TOKEN"]
+        raw.to_s.split(",").map(&:strip).reject(&:empty?)
+      end
+
+      def request(path, token)
         uri = URI("#{ENV.fetch('ECT_API_URL')}#{path}")
         response = Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https",
                                    open_timeout: 5, read_timeout: 10) do |http|
-          request = Net::HTTP::Get.new(uri)
-          request["Authorization"] = "Bearer #{ENV.fetch('ECT_API_TOKEN')}"
-          request["Accept"] = "application/json"
-          http.request(request)
+          req = Net::HTTP::Get.new(uri)
+          req["Authorization"] = "Bearer #{token}"
+          req["Accept"] = "application/json"
+          http.request(req)
         end
         raise FetchError, "HTTP #{response.code} from #{uri}" unless response.is_a?(Net::HTTPSuccess)
         JSON.parse(response.body)
