@@ -44,10 +44,10 @@ export default class extends Controller {
         if (!c) return ""
         const pct = sum === 0 ? 0 : (t.votes * 100 / sum).toFixed(1)
         return `<div class="zd-row">
-          <i style="background:${c.color}"></i>
-          <span class="zd-name">เบอร์ ${c.number} ${c.name}</span>
-          <span class="zd-v num">${t.votes.toLocaleString("th-TH")} (${pct}%)</span>
-        </div>`
+      ${c.photo_url ? `<img class="zd-photo" src="${c.photo_url}" alt="" loading="lazy">` : `<i style="background:${c.color}"></i>`}
+      <span class="zd-name">เบอร์ ${c.number} ${c.name}${c.party_logo_url ? ` <img class="party-logo" src="${c.party_logo_url}" alt="">` : ""}</span>
+      <span class="zd-v num">${t.votes.toLocaleString("th-TH")} (${pct}%)</span>
+    </div>`
       }).join("")
       this.panelTarget.classList.add("show")
     } catch { /* เงียบไว้ */ }

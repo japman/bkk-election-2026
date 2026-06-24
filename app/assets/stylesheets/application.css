@@ -493,3 +493,6 @@ html[data-theme="dark"] .flash-msg.notice{
 html[data-theme="dark"] .flash-msg.alert{
   background:rgba(255,80,80,.14);color:#FFB3B3;border-color:rgba(255,80,80,.3);
 }
+.avatar-img{ object-fit:cover; background:#fff; }
+.party-logo{ width:18px; height:18px; border-radius:3px; object-fit:contain; vertical-align:-3px; margin-right:4px; }
+.zd-photo{ width:28px; height:28px; border-radius:50%; object-fit:cover; flex:0 0 auto; }

@@ -2,6 +2,14 @@ require "rails_helper"
 require "aws-sdk-s3"
 
 RSpec.describe ResultsSnapshot do
+  it "includes photo_url and party_logo_url for each candidate" do
+    e = build_election(zones: 1, candidates: 1)
+    c = e.candidates.first
+    c.update!(photo_url: "/images/candidates/1.png", party_logo_url: "/images/parties/x.png")
+    entry = described_class.new(e).as_json[:candidates].first
+    expect(entry).to include(photo_url: "/images/candidates/1.png", party_logo_url: "/images/parties/x.png")
+  end
+
   it "builds the public payload" do
     e = build_election(zones: 2, candidates: 2)
     ResultWriter.new(e.zones.first, source: "api").apply!(
