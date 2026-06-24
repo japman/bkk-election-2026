@@ -44,5 +44,6 @@ class IngestPollJob < ApplicationJob
     # publish ทุกรอบที่ payload ผ่าน validation — กัน snapshot ค้างถาวรเมื่อ
     # publish รอบก่อนพังหลัง write commit แล้ว (ราคา S3 PUT ทุก 30 วิ = จิ๊บจ๊อย)
     SnapshotPublisher.new(election).publish
+    SnapshotArchiveJob.perform_later(election.id, Time.current.iso8601)
   end
 end
