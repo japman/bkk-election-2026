@@ -18,10 +18,11 @@ RSpec.describe Election do
 end
 
 RSpec.describe Candidate do
-  it "enforces unique number per election" do
+  it "enforces unique number per governor election at the database level" do
     e = Election.create!(name: "ทดสอบ", election_date: Date.new(2026, 6, 28))
     e.candidates.create!(number: 1, name: "ก", color: "#000000")
-    expect(e.candidates.build(number: 1, name: "ข", color: "#111111")).not_to be_valid
+    expect { e.candidates.create!(number: 1, name: "ข", color: "#111111") }
+      .to raise_error(ActiveRecord::RecordNotUnique)
   end
 end
 

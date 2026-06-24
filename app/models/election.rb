@@ -6,7 +6,11 @@ class Election < ApplicationRecord
 
   validates :name, :election_date, presence: true
 
-  def self.current = order(created_at: :desc).first
+  scope :governor_elections, -> { where(kind: "governor").order(created_at: :desc) }
+  scope :council_elections,  -> { where(kind: "council").order(created_at: :desc) }
+  def self.governor = governor_elections.first
+  def self.council = council_elections.first
+  def self.current = governor
 
   # ผู้สมัครทุกคน + total_votes (SUM สดจาก 50 เขต — ไม่เก็บซ้ำ ตาม spec §6)
   def leaderboard

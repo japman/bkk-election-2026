@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_24_143955) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_24_155833) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,15 +25,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_143955) do
     t.string "party_logo_url"
     t.string "photo_url"
     t.datetime "updated_at", null: false
-    t.index ["election_id", "number"], name: "index_candidates_on_election_id_and_number", unique: true
+    t.bigint "zone_id"
+    t.index ["election_id", "number"], name: "idx_candidates_election_number_governor", unique: true, where: "(zone_id IS NULL)"
+    t.index ["election_id", "zone_id", "number"], name: "idx_candidates_election_zone_number_council", unique: true, where: "(zone_id IS NOT NULL)"
     t.index ["election_id"], name: "index_candidates_on_election_id"
     t.index ["external_id"], name: "index_candidates_on_external_id", unique: true, where: "(external_id IS NOT NULL)"
+    t.index ["zone_id"], name: "index_candidates_on_zone_id"
   end
 
   create_table "elections", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "data_mode", default: "api", null: false
     t.date "election_date", null: false
+    t.string "kind", default: "governor", null: false
     t.string "name", null: false
     t.string "status", default: "scheduled", null: false
     t.datetime "updated_at", null: false
@@ -107,6 +111,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_24_143955) do
   end
 
   add_foreign_key "candidates", "elections"
+  add_foreign_key "candidates", "zones"
   add_foreign_key "sessions", "users"
   add_foreign_key "vote_results", "candidates"
   add_foreign_key "vote_results", "zones"
