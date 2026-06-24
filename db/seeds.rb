@@ -1,5 +1,6 @@
 # 50 เขต กทม. — [ชื่อ, grid_col, grid_row] เรียงตามผัง cartogram
 # code = ลำดับในผังนี้ (01-50) — adapter เป็นคนแปลงรหัสเขตของ กกต. มาเป็น code นี้
+Object.send(:remove_const, :ZONES) if defined?(ZONES)
 ZONES = [
   [ "ดอนเมือง", 6, 1 ], [ "สายไหม", 7, 1 ], [ "คลองสามวา", 9, 1 ], [ "หนองจอก", 10, 1 ],
   [ "หลักสี่", 6, 2 ], [ "บางเขน", 7, 2 ], [ "ลาดพร้าว", 8, 2 ], [ "บึงกุ่ม", 9, 2 ],
@@ -20,6 +21,7 @@ ZONES = [
 ].freeze
 
 # ข้อมูลจำลอง — แทนที่ด้วยรายชื่อจริงเมื่อ กกต. ประกาศ
+Object.send(:remove_const, :CANDIDATES) if defined?(CANDIDATES)
 CANDIDATES = [
   [ 1, "วรา สินธุเดช", "อิสระ", "#0E8A45" ],
   [ 2, "เกรียงไกร บุญมาก", "ไทยนคร", "#C42B2B" ],
@@ -31,7 +33,7 @@ CANDIDATES = [
   [ 8, "มานพ ตั้งตรง", "อิสระ", "#5B6770" ]
 ].freeze
 
-election = Election.find_or_create_by!(name: "เลือกตั้งผู้ว่าราชการกรุงเทพมหานคร 2569") do |e|
+election = Election.find_or_create_by!(name: "เลือกตั้งผู้ว่าราชการกรุงเทพมหานคร 2569", kind: "governor") do |e|
   e.election_date = Date.new(2026, 6, 28)
   e.status = "scheduled"
 end
@@ -53,6 +55,17 @@ CANDIDATES.each do |number, name, party, color|
 end
 
 puts "Seeded: #{election.name} — #{election.zones.count} zones, #{election.candidates.count} candidates"
+
+council = Election.find_or_create_by!(name: "เลือกตั้งสมาชิกสภากรุงเทพมหานคร 2569", kind: "council") do |e|
+  e.election_date = Date.new(2026, 6, 28)
+  e.status = "scheduled"
+end
+ZONES.each_with_index do |(name, col, row), i|
+  council.zones.find_or_create_by!(code: format("%02d", i + 1)) do |z|
+    z.name = name; z.grid_col = col; z.grid_row = row
+  end
+end
+puts "Seeded: #{council.name} — #{council.zones.count} zones"
 
 if Rails.env.development?
   User.find_or_create_by!(email_address: ENV.fetch("ADMIN_EMAIL", "admin@dailynews.local")) do |u|
