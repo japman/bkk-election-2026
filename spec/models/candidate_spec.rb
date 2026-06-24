@@ -21,4 +21,10 @@ RSpec.describe Candidate do
     election.candidates.create!(number: 97, name: "b")
     expect(election.candidates.where(external_id: nil).count).to be >= 2
   end
+
+  it "stores a party_logo_url" do
+    c = build_election(zones: 0, candidates: 1).candidates.first
+    c.update!(party_logo_url: "/images/parties/prachachon.png")
+    expect(c.reload.party_logo_url).to eq("/images/parties/prachachon.png")
+  end
 end
