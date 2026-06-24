@@ -15,7 +15,7 @@ class IngestPollJob < ApplicationJob
     end
 
     parsed = Ingest::EctAdapter.parse(
-      Ingest::Client.fetch,
+      Ingest::Client.fetch_results.to_json,
       expected_zone_codes: election.zones.pluck(:code),
       known_numbers: election.candidates.pluck(:number)
     )

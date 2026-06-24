@@ -3,17 +3,19 @@ require "rails_helper"
 RSpec.describe IngestPollJob do
   let!(:election) { build_election(zones: 2, candidates: 2) }
   let(:raw) { Rails.root.join("spec/fixtures/ingest/valid.json").read }
+  let(:raw_hash) { JSON.parse(raw) }
   let(:publisher) { instance_double(SnapshotPublisher, publish: true) }
 
   before do
     ENV["ECT_API_URL"] = "https://partner.example/results"
-    allow(Ingest::Client).to receive(:fetch).and_return(raw)
+    ENV["ECT_API_TOKEN"] = "test-token"
+    allow(Ingest::Client).to receive(:fetch_results).and_return(raw_hash)
     allow(SnapshotPublisher).to receive(:new).and_return(publisher)
     allow(ResultsBroadcaster).to receive(:new)
       .and_return(instance_double(ResultsBroadcaster, broadcast_all: true))
   end
 
-  after { ENV.delete("ECT_API_URL") }
+  after { ENV.delete("ECT_API_URL"); ENV.delete("ECT_API_TOKEN") }
 
   it "writes results and stats from the API payload, then publishes snapshot" do
     described_class.perform_now
@@ -53,7 +55,7 @@ RSpec.describe IngestPollJob do
   end
 
   it "rejects an invalid payload and writes nothing" do
-    allow(Ingest::Client).to receive(:fetch).and_return({ zones: "เพี้ยน" }.to_json)
+    allow(Ingest::Client).to receive(:fetch_results).and_return({ "zones" => "เพี้ยน" })
     allow(Rails.logger).to receive(:error)
     described_class.perform_now
     expect(VoteResult.count).to eq(0)
@@ -70,7 +72,7 @@ RSpec.describe IngestPollJob do
     lowered = JSON.parse(raw)
     lowered["zones"][0]["results"][0]["votes"] = 1        # เขต 01 ลดลง → ข้าม
     lowered["zones"][1]["results"][0]["votes"] = 20000     # เขต 02 เพิ่ม → ใช้
-    allow(Ingest::Client).to receive(:fetch).and_return(lowered.to_json)
+    allow(Ingest::Client).to receive(:fetch_results).and_return(lowered)
     allow(Rails.logger).to receive(:error)
     described_class.perform_now
     z1, z2 = election.zones.order(:code).to_a
