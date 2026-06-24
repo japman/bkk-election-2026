@@ -20,6 +20,8 @@ Rails.application.routes.draw do
     resources :revisions, only: :index
   end
 
+  get "council" => "council#show"
+
   # Defines the root path route ("/")
   root "dashboard#show"
 end

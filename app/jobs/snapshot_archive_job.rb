@@ -12,7 +12,7 @@ class SnapshotArchiveJob < ApplicationJob
 
     json = ResultsSnapshot.new(election).as_json.to_json
     at  = Time.iso8601(polled_at_iso).in_time_zone(ARCHIVE_TZ)
-    key = "snapshots/#{at.strftime('%Y-%m-%d')}/#{at.strftime('%H%M%S')}.json"
+    key = "snapshots/#{election.kind}/#{at.strftime('%Y-%m-%d')}/#{at.strftime('%H%M%S')}.json"
 
     Aws::S3::Client.new.put_object(
       bucket: ENV.fetch("SNAPSHOT_BUCKET"), key: key, body: json,

@@ -9,15 +9,16 @@ class SnapshotPublisher
   end
 
   def publish
+    key = @election.kind == "council" ? "results-council.json" : KEY
     json = ResultsSnapshot.new(@election).as_json.to_json
     if ENV["SNAPSHOT_BUCKET"].present?
       require "aws-sdk-s3"
       Aws::S3::Client.new.put_object(
-        bucket: ENV.fetch("SNAPSHOT_BUCKET"), key: KEY, body: json,
+        bucket: ENV.fetch("SNAPSHOT_BUCKET"), key: key, body: json,
         content_type: "application/json", cache_control: "max-age=5"
       )
     else
-      File.write(Rails.public_path.join(KEY), json)
+      File.write(Rails.public_path.join(key), json)
     end
   end
 end

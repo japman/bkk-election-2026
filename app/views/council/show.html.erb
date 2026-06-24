@@ -1,0 +1,11 @@
+<%= render "shared/election_tabs" %>
+<h1>ผลเลือกตั้ง สก กรุงเทพมหานคร</h1>
+<% if @election %>
+  <div data-controller="council">
+    <%= render "council/seats", election: @election %>
+    <%= render "council/map", election: @election %>
+    <%= render "council/zone_detail" %>
+  </div>
+<% else %>
+  <p>ยังไม่มีข้อมูลการเลือกตั้ง สก</p>
+<% end %>

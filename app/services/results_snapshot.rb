@@ -5,6 +5,12 @@ class ResultsSnapshot
   end
 
   def as_json(*)
+    @election.kind == "council" ? council_json : governor_json
+  end
+
+  private
+
+  def governor_json
     total = @election.total_votes
     {
       updated_at: Time.current.iso8601,
@@ -27,5 +33,24 @@ class ResultsSnapshot
           results: ranked.map { |r| { number: r.candidate.number, votes: r.votes } } }
       end
     }
+  end
+
+  def council_json
+    districts = @election.zones.order(:code).includes(:zone_stat, vote_results: :candidate).map do |z|
+      ranked = z.vote_results.sort_by { |r| -r.votes }
+      w = ranked.first&.candidate
+      { code: z.code, name: z.name, counted_percent: z.zone_stat&.counted_percent.to_f,
+        winner: w && { number: w.number, name: w.name, party: w.party, color: w.color,
+                       photo_url: w.photo_url, votes: ranked.first.votes },
+        results: ranked.map { |r| { number: r.candidate.number, name: r.candidate.name,
+                                    party: r.candidate.party, color: r.candidate.color,
+                                    photo_url: r.candidate.photo_url, votes: r.votes } } }
+    end
+    seats = districts.map { |d| d[:winner] }.compact
+            .group_by { |w| w[:party] }
+            .map { |party, ws| { party: party, color: ws.first[:color], seats: ws.size } }
+            .sort_by { |s| -s[:seats] }
+    { updated_at: Time.current.iso8601, kind: "council",
+      counted_percent: @election.counted_percent.to_f, seats: seats, districts: districts }
   end
 end

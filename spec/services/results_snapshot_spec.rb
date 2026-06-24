@@ -55,6 +55,22 @@ RSpec.describe ResultsSnapshot do
   end
 end
 
+RSpec.describe ResultsSnapshot, "council payload" do
+  it "builds a council payload with per-district winners and seats-by-party" do
+    e = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    z = e.zones.create!(code: "01", name: "ก", grid_col: 1, grid_row: 1)
+    win = e.candidates.create!(number: 1, name: "W", party: "P1", color: "#111", zone: z)
+    lose = e.candidates.create!(number: 2, name: "L", party: "P2", color: "#222", zone: z)
+    VoteResult.create!(zone: z, candidate: win, votes: 600)
+    VoteResult.create!(zone: z, candidate: lose, votes: 400)
+    ZoneStat.create!(zone: z, eligible_voters: 2000, turnout: 1000, bad_ballots: 0, no_vote: 0, counted_percent: 90.0)
+    json = described_class.new(e).as_json
+    d = json[:districts].first
+    expect(d[:winner]).to include(number: 1, party: "P1", votes: 600)
+    expect(json[:seats]).to include(hash_including(party: "P1", seats: 1))
+  end
+end
+
 RSpec.describe SnapshotPublisher do
   it "writes results.json to public/ when SNAPSHOT_BUCKET is not set" do
     e = build_election(zones: 1, candidates: 1)

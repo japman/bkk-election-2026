@@ -21,7 +21,7 @@ RSpec.describe SnapshotArchiveJob do
 
       expect(s3).to have_received(:put_object).once.with(
         bucket: "test-bucket",
-        key: "snapshots/2026-06-24/153045.json",
+        key: "snapshots/governor/2026-06-24/153045.json",
         body: ResultsSnapshot.new(election).as_json.to_json,
         content_type: "application/json",
         cache_control: "max-age=31536000, immutable"
@@ -33,7 +33,7 @@ RSpec.describe SnapshotArchiveJob do
       described_class.perform_now(election.id, "2026-06-24T18:30:00Z")
 
       expect(s3).to have_received(:put_object).once.with(
-        hash_including(key: "snapshots/2026-06-25/013000.json")
+        hash_including(key: "snapshots/governor/2026-06-25/013000.json")
       )
     end
 

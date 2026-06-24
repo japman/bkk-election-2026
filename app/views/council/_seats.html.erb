@@ -1,0 +1,7 @@
+<div class="council-seats" id="council-seats">
+  <% winners = election.zones.includes(vote_results: :candidate).filter_map { |z| z.vote_results.max_by(&:votes)&.candidate } %>
+  <% seats = winners.group_by { |c| [c.party, c.color] }.transform_values(&:size).sort_by { |_, n| -n } %>
+  <% seats.each do |(party, color), n| %>
+    <span class="seat-row"><i style="background: <%= color %>"></i><%= party %> <b><%= n %></b> ที่นั่ง</span>
+  <% end %>
+</div>
