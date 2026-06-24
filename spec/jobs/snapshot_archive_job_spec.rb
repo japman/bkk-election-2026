@@ -5,7 +5,6 @@ RSpec.describe SnapshotArchiveJob do
   let(:s3) { instance_double(Aws::S3::Client, put_object: nil) }
 
   before do
-    require "aws-sdk-s3"
     allow(Aws::S3::Client).to receive(:new).and_return(s3)
   end
 
@@ -18,15 +17,12 @@ RSpec.describe SnapshotArchiveJob do
     end
 
     it "uploads the snapshot JSON with the correct S3 key using Bangkok time (+07:00 input)" do
-      expected_json = ResultsSnapshot.new(election).as_json.to_json
-      allow(ResultsSnapshot).to receive(:new).with(election).and_call_original
-
       described_class.perform_now(election.id, "2026-06-24T15:30:45+07:00")
 
       expect(s3).to have_received(:put_object).once.with(
         bucket: "test-bucket",
         key: "snapshots/2026-06-24/153045.json",
-        body: be_a(String),
+        body: ResultsSnapshot.new(election).as_json.to_json,
         content_type: "application/json",
         cache_control: "max-age=31536000, immutable"
       )
@@ -91,7 +87,7 @@ RSpec.describe SnapshotArchiveJob do
       old = ENV["SNAPSHOT_BUCKET"]
       ENV["SNAPSHOT_BUCKET"] = ""
       example.run
-      ENV["SNAPSHOT_BUCKET"] = old
+      ENV["SNAPSHOT_BUCKET"] = old if old
     end
 
     it "does NOT call put_object" do

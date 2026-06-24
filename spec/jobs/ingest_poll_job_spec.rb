@@ -61,7 +61,6 @@ RSpec.describe IngestPollJob do
   end
 
   it "enqueues SnapshotArchiveJob with the election id after a successful poll" do
-    include ActiveJob::TestHelper
     expect { described_class.perform_now }
       .to have_enqueued_job(SnapshotArchiveJob).with(election.id, anything)
   end
