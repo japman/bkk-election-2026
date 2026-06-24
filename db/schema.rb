@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_090447) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_24_104436) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -18,6 +18,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_090447) do
     t.string "color", default: "#0E7A3D", null: false
     t.datetime "created_at", null: false
     t.bigint "election_id", null: false
+    t.string "external_id"
     t.string "name", null: false
     t.integer "number", null: false
     t.string "party"
@@ -25,6 +26,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_090447) do
     t.datetime "updated_at", null: false
     t.index ["election_id", "number"], name: "index_candidates_on_election_id_and_number", unique: true
     t.index ["election_id"], name: "index_candidates_on_election_id"
+    t.index ["external_id"], name: "index_candidates_on_external_id", unique: true, where: "(external_id IS NOT NULL)"
   end
 
   create_table "elections", force: :cascade do |t|

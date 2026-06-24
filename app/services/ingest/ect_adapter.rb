@@ -1,71 +1,83 @@
 module Ingest
-  # จุดเดียวที่ผูกกับ format ของ API กกต./พาร์ทเนอร์ (spec §9)
-  # ถ้า spec จริงคลาดเคลื่อน แก้ mapping ที่ไฟล์นี้ไฟล์เดียว
-  # นโยบาย: payload มี error ใดๆ = reject ทั้งก้อน + คืน errors ให้ caller log (spec §7)
+  # The single binding point to the ECT API payload shape.
+  # Policy: any error rejects the whole payload and returns errors for the caller to log.
   class EctAdapter
     Result = Struct.new(:data, :errors) do
       def ok? = errors.empty?
     end
 
     class << self
-      def parse(raw, expected_zone_codes:, known_numbers:)
-        json = JSON.parse(raw)
-        zones = json["zones"]
-        return Result.new({}, [ "payload: zones must be an array" ]) unless zones.is_a?(Array)
+      def parse(payload, expected_zone_codes:, candidate_map:)
+        unless payload.is_a?(Hash) && payload["success"] == true
+          return Result.new({}, [ "payload: success was not true" ])
+        end
+        areas = payload.dig("data", "areas")
+        return Result.new({}, [ "payload: data.areas must be an array" ]) unless areas.is_a?(Array)
 
         errors = []
         data = {}
-        missing = expected_zone_codes - zones.map { |z| z["code"].to_s }
-        errors << "missing zones: #{missing.join(', ')}" if missing.any?
+        codes = areas.map { |a| area_code(a) }
+        missing = expected_zone_codes - codes.compact
+        errors << "missing areas: #{missing.join(', ')}" if missing.any?
+        unexpected = codes.compact - expected_zone_codes
+        errors << "unexpected areas: #{unexpected.join(', ')}" if unexpected.any?
+        errors << "area with missing area_number" if codes.any?(&:nil?)
+        dupes = codes.compact.tally.select { |_, n| n > 1 }.keys
+        errors << "duplicate areas: #{dupes.join(', ')}" if dupes.any?
 
-        codes = zones.map { |z| z["code"].to_s }
-        unexpected = codes.reject(&:empty?) - expected_zone_codes
-        errors << "unexpected zones: #{unexpected.join(', ')}" if unexpected.any?
-        errors << "zone with missing code" if codes.any?(&:empty?)
-        dupes = codes.tally.select { |_, n| n > 1 }.keys
-        errors << "duplicate zone codes: #{dupes.join(', ')}" if dupes.any?
-
-        zones.each do |z|
-          zone_errors = validate_zone(z, known_numbers)
-          if zone_errors.any?
-            errors.concat(zone_errors.map { |msg| "zone #{z['code']}: #{msg}" })
+        areas.each do |a|
+          code = area_code(a)
+          next if code.nil?
+          area_errors = validate_area(a, candidate_map)
+          if area_errors.any?
+            errors.concat(area_errors.map { |m| "area #{code}: #{m}" })
           else
-            data[z["code"].to_s] = normalize(z)
+            data[code] = normalize(a, candidate_map)
           end
         end
         Result.new(data, errors)
-      rescue JSON::ParserError => e
-        Result.new({}, [ "invalid JSON: #{e.message}" ])
       end
 
       private
 
-      def validate_zone(z, known_numbers)
+      def area_code(a)
+        n = a["area_number"]
+        n.is_a?(Integer) ? format("%02d", n) : nil
+      end
+
+      def validate_area(a, candidate_map)
         errors = []
-        results = z["results"]
+        results = a["results"]
         return [ "results must be an array" ] unless results.is_a?(Array)
 
         results.each do |r|
-          errors << "unknown candidate ##{r['number']}" unless known_numbers.include?(r["number"])
+          uuid = r["candidate_id"]
+          errors << "unknown candidate_id #{uuid}" unless candidate_map.key?(uuid)
           unless r["votes"].is_a?(Integer) && r["votes"] >= 0
-            errors << "votes must be a non-negative integer (##{r['number']})"
+            errors << "votes must be a non-negative integer (#{uuid})"
           end
         end
-        pct = z["counted_percent"]
-        errors << "counted_percent out of range" unless pct.is_a?(Numeric) && pct.between?(0, 100)
-        %w[eligible turnout bad no_vote].each do |field|
-          errors << "#{field} must be a non-negative integer" unless z[field].is_a?(Integer) && z[field] >= 0
+
+        meta = a["metadata"]
+        return errors + [ "metadata must be a hash" ] unless meta.is_a?(Hash)
+        pct = meta["coverage_percentage"]
+        errors << "coverage_percentage out of range" unless pct.is_a?(Numeric) && pct.between?(0, 100)
+        %w[total_eligible_voters total_votes invalid_votes no_votes].each do |f|
+          errors << "#{f} must be a non-negative integer" unless meta[f].is_a?(Integer) && meta[f] >= 0
         end
         errors
       end
 
-      def normalize(z)
+      def normalize(a, candidate_map)
+        meta = a["metadata"]
         {
-          votes: z["results"].to_h { |r| [ r["number"], r["votes"] ] },
+          votes: a["results"].to_h { |r| [ candidate_map.fetch(r["candidate_id"]), r["votes"] ] },
           stats: {
-            eligible_voters: z["eligible"], turnout: z["turnout"],
-            bad_ballots: z["bad"], no_vote: z["no_vote"],
-            counted_percent: z["counted_percent"]
+            eligible_voters: meta["total_eligible_voters"],
+            turnout: meta["total_votes"],
+            bad_ballots: meta["invalid_votes"],
+            no_vote: meta["no_votes"],
+            counted_percent: meta["coverage_percentage"]
           }
         }
       end

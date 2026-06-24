@@ -1,8 +1,5 @@
 class IngestPollJob < ApplicationJob
   queue_as :default
-
-  # API ล่ม → ลองซ้ำเร็วๆ ครั้งเดียวพอ (รอบ recurring ถัดไปมาใน 30 วิอยู่แล้ว
-  # backoff ยาวจะซ้อนกับ tick ใหม่เป็น concurrent ingest)
   retry_on Ingest::Client::FetchError, wait: 5.seconds, attempts: 2
 
   def perform
@@ -14,10 +11,20 @@ class IngestPollJob < ApplicationJob
       return
     end
 
+    candidate_map = election.candidates.where.not(external_id: nil).pluck(:external_id, :number).to_h
+    if candidate_map.empty?
+      Rails.logger.warn("[ingest] no candidates synced (run rake ect:sync_candidates) — skipping poll")
+      return
+    end
+
+    raw = Ingest::Client.fetch_results
+    src = raw["source"] || {}
+    Rails.logger.info("[ingest] source=#{src['selected']} coverage=#{src['areasWithData']}/#{src['competitiveAreasTotal']}")
+
     parsed = Ingest::EctAdapter.parse(
-      Ingest::Client.fetch,
+      raw,
       expected_zone_codes: election.zones.pluck(:code),
-      known_numbers: election.candidates.pluck(:number)
+      candidate_map: candidate_map
     )
     unless parsed.ok?
       Rails.logger.error("[ingest] rejected payload: #{parsed.errors.join('; ')}")
@@ -41,8 +48,7 @@ class IngestPollJob < ApplicationJob
         Rails.logger.error("[ingest] broadcast failed: #{e.class} #{e.message}")
       end
     end
-    # publish ทุกรอบที่ payload ผ่าน validation — กัน snapshot ค้างถาวรเมื่อ
-    # publish รอบก่อนพังหลัง write commit แล้ว (ราคา S3 PUT ทุก 30 วิ = จิ๊บจ๊อย)
+
     SnapshotPublisher.new(election).publish
     SnapshotArchiveJob.perform_later(election.id, Time.current.iso8601)
   end
