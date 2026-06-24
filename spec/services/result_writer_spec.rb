@@ -53,4 +53,14 @@ RSpec.describe ResultWriter do
     expect(rev.old_values["counted_percent"]).to eq(55.5)
     expect(rev.new_values["counted_percent"]).to eq(60.0)
   end
+
+  it "writes votes to the zone-scoped candidate (council)" do
+    e = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    z1 = e.zones.create!(code: "01", name: "ก", grid_col: 1, grid_row: 1)
+    z2 = e.zones.create!(code: "02", name: "ข", grid_col: 2, grid_row: 1)
+    e.candidates.create!(number: 1, name: "z1c1", color: "#111", zone: z1) # same number, inserted first
+    c2 = e.candidates.create!(number: 1, name: "z2c1", color: "#222", zone: z2)
+    ResultWriter.new(z2, source: "api").apply!({ 1 => 500 })
+    expect(c2.vote_results.sum(:votes)).to eq(500)
+  end
 end

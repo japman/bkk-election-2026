@@ -33,7 +33,7 @@ class ResultWriter
   def revision_source = @source == "api" ? "api" : "admin"
 
   def write_votes(number, votes)
-    candidate = @zone.election.candidates.find_by!(number: number)
+    candidate = @zone.election.candidates.where(zone_id: [ nil, @zone.id ]).find_by!(number: number)
     result = VoteResult.find_or_initialize_by(zone: @zone, candidate: candidate)
     old = result.persisted? ? result.votes : nil
     return false if old == votes
