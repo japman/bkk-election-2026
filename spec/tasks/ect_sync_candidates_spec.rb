@@ -27,4 +27,23 @@ RSpec.describe "ect:sync_candidates", type: :task do
     Rake::Task["ect:sync_candidates"].invoke
     expect(election.candidates.count).to eq(18)
   end
+
+  it "syncs council candidates per zone across pages" do
+    council = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    council.zones.create!(code: "01", name: "ก", grid_col: 1, grid_row: 1)
+    council.zones.create!(code: "02", name: "ข", grid_col: 2, grid_row: 1)
+    page1 = { success: true, data: { candidates: [
+      { id: "u1", number: 1, areaNumber: 1, name: "A", party: { name: "P1", color: "#111" } }],
+      pagination: { hasMore: true } } }
+    page2 = { success: true, data: { candidates: [
+      { id: "u2", number: 1, areaNumber: 2, name: "B", party: { name: "P2", color: "#222" } }],
+      pagination: { hasMore: false } } }
+    allow(Ingest::Client).to receive(:fetch_candidates).with("bkk-council-2026", page: 1).and_return(JSON.parse(page1.to_json))
+    allow(Ingest::Client).to receive(:fetch_candidates).with("bkk-council-2026", page: 2).and_return(JSON.parse(page2.to_json))
+    Rake::Task["ect:sync_candidates"].reenable
+    Rake::Task["ect:sync_candidates"].invoke("council")
+    z1c1 = council.zones.find_by(code: "01").then { |z| council.candidates.find_by(zone: z, number: 1) }
+    expect(z1c1.external_id).to eq("u1")
+    expect(council.candidates.where(number: 1).count).to eq(2) # one per zone
+  end
 end
