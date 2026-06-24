@@ -504,3 +504,4 @@ html[data-theme="dark"] .flash-msg.alert{
 .seat-row{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px}
 .seat-row i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
 .seat-row b{font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums}
+.zd-row.winner{font-weight:700;background:color-mix(in srgb, var(--c,#0E7A3D) 10%, #fff)}

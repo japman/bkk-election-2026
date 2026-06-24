@@ -4,6 +4,7 @@
   <div data-controller="council">
     <%= render "council/seats", election: @election %>
     <%= render "council/map", election: @election %>
+    <%= render "council/zone_detail" %>
   </div>
 <% else %>
   <p>ยังไม่มีข้อมูลการเลือกตั้ง สก</p>

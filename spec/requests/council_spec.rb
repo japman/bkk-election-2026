@@ -15,4 +15,10 @@ RSpec.describe "Council dashboard", type: :request do
     expect(response.body).to include('class="map-grid"')
     expect(response.body).to include("council-seats")
   end
+
+  it "includes the district detail panel container" do
+    Election.create!(name: "C", election_date: Date.new(2026,6,28), kind: "council")
+    get "/council"
+    expect(response.body).to include('data-council-target="panel"')
+  end
 end
