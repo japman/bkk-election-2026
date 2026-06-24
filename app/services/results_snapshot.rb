@@ -12,6 +12,7 @@ class ResultsSnapshot
       stats: @election.stats_summary,
       candidates: @election.leaderboard.map do |c|
         { number: c.number, name: c.name, party: c.party, color: c.color,
+          photo_url: c.photo_url, party_logo_url: c.party_logo_url,
           votes: c.total_votes.to_i,
           percent: total.zero? ? 0.0 : (c.total_votes * 100.0 / total).round(1) }
       end,
