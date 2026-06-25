@@ -1,5 +1,5 @@
-<%= render "shared/election_tabs" %>
 <% if @election.nil? %>
+  <%= render "site_header" %>
   <main class="wrap"><p>ยังไม่เปิดรายงานผล</p></main>
 <% else %>
   <%= turbo_stream_from "results" %>

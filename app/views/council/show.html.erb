@@ -1,11 +1,32 @@
-<%= render "shared/election_tabs" %>
-<h1>ผลเลือกตั้ง สก กรุงเทพมหานคร</h1>
 <% if @election %>
-  <div data-controller="council">
-    <%= render "council/seats", election: @election %>
-    <%= render "council/map", election: @election %>
-    <%= render "council/zone_detail" %>
-  </div>
+  <%= render "dashboard/site_header", election: @election, title: "เลือกตั้ง สก กทม. 2569" %>
+  <main class="wrap wrap-plain">
+    <h1 class="page-title">ผลเลือกตั้ง สก กรุงเทพมหานคร</h1>
+    <div class="council-layout" data-controller="council">
+      <aside class="council-aside">
+        <div class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V7l8-4v18M19 21V11l-6-4"/></svg>
+            <h2>ที่นั่งแต่ละพรรค</h2>
+          </div>
+          <%= render "council/seats", election: @election %>
+        </div>
+      </aside>
+      <section class="card sec-map" aria-label="แผนที่ผลรายเขต สก">
+        <div class="card-head">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+          <h2>ผลรายเขต สก — 50 เขต</h2>
+          <span class="hint">แตะเขตเพื่อดูผู้ชนะ</span>
+        </div>
+        <div class="map-body">
+          <%= render "council/map", election: @election %>
+          <%= render "council/zone_detail" %>
+        </div>
+      </section>
+    </div>
+  </main>
+  <footer>ผลคะแนนอย่างไม่เป็นทางการ — รวบรวมโดยทีมข่าวเดลินิวส์</footer>
 <% else %>
-  <p>ยังไม่มีข้อมูลการเลือกตั้ง สก</p>
+  <%= render "dashboard/site_header", title: "เลือกตั้ง สก กทม. 2569" %>
+  <main class="wrap wrap-plain"><p>ยังไม่มีข้อมูลการเลือกตั้ง สก</p></main>
 <% end %>

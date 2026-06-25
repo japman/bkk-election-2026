@@ -1,7 +1,15 @@
 <div class="council-seats" id="council-seats">
   <% winners = election.zones.includes(vote_results: :candidate).filter_map { |z| z.vote_results.max_by(&:votes)&.candidate } %>
-  <% seats = winners.group_by { |c| [c.party, c.color] }.transform_values(&:size).sort_by { |_, n| -n } %>
-  <% seats.each do |(party, color), n| %>
-    <span class="seat-row"><i style="background: <%= color %>"></i><%= party %> <b><%= n %></b> ที่นั่ง</span>
+  <%# รวมตามชื่อพรรค — "อิสระ" หลายเบอร์ (คนละสี) จะถูกนับรวมเป็นก้อนเดียว, ใช้สีเทากลางเมื่อมีหลายสี %>
+  <% rows = winners.group_by(&:party).map { |party, cands|
+       colors = cands.map(&:color).uniq
+       [party, (colors.size == 1 ? colors.first : "#888888"), cands.size]
+     }.sort_by { |_, _, n| -n } %>
+  <% rows.each do |party, color, n| %>
+    <span class="seat-row">
+      <i style="background: <%= color %>"></i>
+      <span class="party-name"><%= party %></span>
+      <b><%= n %></b><span class="seat-unit">ที่นั่ง</span>
+    </span>
   <% end %>
 </div>
