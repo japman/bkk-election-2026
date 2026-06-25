@@ -88,5 +88,13 @@ RSpec.describe "Admin panel", type: :request do
         patch admin_zone_result_path(zone), params: { confirm: "1", votes: { "1" => "999" } }
       }.to change { election.trend_points.count }.by(1)
     end
+
+    it "still redirects with success when a post-save side effect raises" do
+      allow_any_instance_of(Election).to receive(:record_trend_point!).and_raise(StandardError, "boom")
+      patch admin_zone_result_path(zone), params: { confirm: "1", votes: { "1" => "777" } }
+      expect(response).to redirect_to(admin_root_path)
+      expect(flash[:notice]).to include("บันทึก")
+      expect(zone.vote_results.sum(:votes)).to eq(777)
+    end
   end
 end

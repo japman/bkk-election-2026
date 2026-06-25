@@ -41,9 +41,13 @@ class Admin::ZoneResultsController < ApplicationController
                          alert: "บันทึกไม่สำเร็จ: #{e.record.errors.full_messages.join(', ')}"
     end
     if changed
-      election.record_trend_point!
-      ResultsBroadcaster.new(election).broadcast_all
-      SnapshotPublisher.new(election).publish
+      begin
+        election.record_trend_point!
+        ResultsBroadcaster.new(election).broadcast_all
+        SnapshotPublisher.new(election).publish
+      rescue StandardError => e
+        Rails.logger.error("[admin] post-save side-effect failed: #{e.class} #{e.message}")
+      end
     end
     redirect_to admin_root_path, notice: "บันทึกเขต#{zone.name} แล้ว"
   end
