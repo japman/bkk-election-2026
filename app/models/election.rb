@@ -41,4 +41,14 @@ class Election < ApplicationRecord
       no_vote: stats.sum(:no_vote)
     }
   end
+
+  # สรุปที่นั่ง สก: รวมตามชื่อพรรค (อิสระหลายเบอร์รวมก้อนเดียว), สีเทาเมื่อหลายสี
+  def council_seat_breakdown
+    winners = zones.includes(vote_results: :candidate)
+                   .filter_map { |z| z.vote_results.max_by(&:votes)&.candidate }
+    winners.group_by(&:party).map do |party, cands|
+      colors = cands.map(&:color).uniq
+      { party: party, color: (colors.size == 1 ? colors.first : "#888888"), seats: cands.size }
+    end.sort_by { |s| -s[:seats] }
+  end
 end

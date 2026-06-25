@@ -21,4 +21,17 @@ RSpec.describe "Council dashboard", type: :request do
     get "/council"
     expect(response.body).to include('data-council-target="panel"')
   end
+
+  it "renders a single grey row for merged independents" do
+    e = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    e.candidates.create!(number: 1, name: "A", party: "อิสระ", color: "#aa0000")
+    e.candidates.create!(number: 2, name: "B", party: "อิสระ", color: "#00aa00")
+    z1 = e.zones.create!(code: "01", name: "z1", grid_col: 1, grid_row: 1)
+    z2 = e.zones.create!(code: "02", name: "z2", grid_col: 2, grid_row: 1)
+    ResultWriter.new(z1, source: "api").apply!({ 1 => 10 })
+    ResultWriter.new(z2, source: "api").apply!({ 2 => 10 })
+    get "/council"
+    expect(response.body).to include("#888888")
+    expect(response.body.scan("party-name").size).to eq(1)
+  end
 end

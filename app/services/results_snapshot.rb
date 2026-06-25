@@ -46,10 +46,7 @@ class ResultsSnapshot
                                     party: r.candidate.party, color: r.candidate.color,
                                     photo_url: r.candidate.photo_url, votes: r.votes } } }
     end
-    seats = districts.map { |d| d[:winner] }.compact
-            .group_by { |w| w[:party] }
-            .map { |party, ws| { party: party, color: ws.first[:color], seats: ws.size } }
-            .sort_by { |s| -s[:seats] }
+    seats = @election.council_seat_breakdown
     { updated_at: Time.current.iso8601, kind: "council",
       counted_percent: @election.counted_percent.to_f, seats: seats, districts: districts }
   end
