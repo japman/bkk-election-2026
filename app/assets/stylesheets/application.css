@@ -190,10 +190,21 @@ svg{display:block}
 .tile.sel{outline:3px solid var(--dn-pink);outline-offset:1px;z-index:1}
 .tile.flip{animation:tileflip .7s ease}
 @keyframes tileflip{0%{filter:brightness(1.7)}100%{filter:brightness(1)}}
+/* ซูมเฉพาะแผนที่ (map-zoom controller) — vp คือกล่อง pan, .map-grid คือ canvas ที่ scale */
+.map-zoom{position:relative}
+.map-zoom-vp{overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;border-radius:10px}
+.map-zoom .map-grid{transform-origin:0 0;will-change:transform}
+.map-zoom-ctl{display:none;position:absolute;right:8px;bottom:8px;gap:6px;z-index:3}
+.map-zoom-ctl button{width:44px;height:44px;border-radius:11px;border:1px solid rgba(255,255,255,.18);
+  background:rgba(20,24,32,.72);color:#fff;font-size:20px;line-height:1;font-weight:600;
+  display:grid;place-items:center;cursor:pointer;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.map-zoom-ctl button:active{transform:scale(.94)}
 @media(max-width:640px){
   .map-grid{gap:3px}
-  .tile span{display:none}
   .tile{border-radius:5px}
+  .tile span{display:block;font-size:6.3px;line-height:1;max-width:100%;padding:0;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-shadow:0 1px 2px rgba(0,0,0,.7)}
+  .map-zoom-ctl{display:flex}
 }
 .legend{display:flex;gap:14px;flex-wrap:wrap;margin-top:12px;font-size:12.5px;color:var(--muted)}
 .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
@@ -504,7 +515,7 @@ html[data-theme="dark"] .flash-msg.alert{
 .seat-row{display:inline-flex;align-items:center;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:5px 12px}
 .seat-row i{display:inline-block;width:11px;height:11px;border-radius:3px;flex:none}
 .seat-row b{font-family:var(--font-display);font-weight:700;font-variant-numeric:tabular-nums}
-.zd-row.winner{font-weight:700;background:color-mix(in srgb, var(--c,#0E7A3D) 10%, #fff)}
+.zd-row.winner{font-weight:700;background:color-mix(in srgb, var(--c,#0E7A3D) 18%, transparent);border-radius:8px}
 
 /* ============ Election tabs ============ */
 .election-tabs{display:flex;gap:8px;margin:10px 0}
