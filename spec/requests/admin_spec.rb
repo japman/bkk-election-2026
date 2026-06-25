@@ -82,5 +82,11 @@ RSpec.describe "Admin panel", type: :request do
       expect(response).to redirect_to(admin_root_path)
       expect(zone.vote_results.sum(:votes)).to eq(777)
     end
+
+    it "records a trend point after a confirmed manual save" do
+      expect {
+        patch admin_zone_result_path(zone), params: { confirm: "1", votes: { "1" => "999" } }
+      }.to change { election.trend_points.count }.by(1)
+    end
   end
 end

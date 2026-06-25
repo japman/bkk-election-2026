@@ -111,4 +111,8 @@ RSpec.describe IngestPollJob do
     described_class.perform_now
     expect(broadcaster_double).to have_received(:broadcast_all)
   end
+
+  it "records a trend point on a governor poll that changes results" do
+    expect { described_class.perform_now }.to change { election.trend_points.count }.by(1)
+  end
 end

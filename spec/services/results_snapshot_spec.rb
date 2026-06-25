@@ -53,6 +53,19 @@ RSpec.describe ResultsSnapshot do
     z = described_class.new(e).as_json[:zones].first
     expect(z[:stats]).to eq(eligible_voters: 0, turnout: 0, bad_ballots: 0, no_vote: 0)
   end
+
+  it "governor snapshot includes a trend series; council has none" do
+    g = Election.create!(name: "G", election_date: Date.new(2026, 6, 28), kind: "governor")
+    g.candidates.create!(number: 1, name: "A", party: "ก", color: "#0E8A45")
+    g.record_trend_point!
+    g.record_trend_point!
+    trend = ResultsSnapshot.new(g).as_json[:trend]
+    expect(trend.size).to eq(2)
+    expect(trend.first).to include(:t, :votes)
+
+    c = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    expect(ResultsSnapshot.new(c).as_json).not_to have_key(:trend)
+  end
 end
 
 RSpec.describe ResultsSnapshot, "council payload" do

@@ -45,6 +45,7 @@ class IngestPollJob < ApplicationJob
 
     if changed && kind == "governor"
       begin
+        election.record_trend_point!
         ResultsBroadcaster.new(election).broadcast_all
       rescue StandardError => e
         Rails.logger.error("[ingest:#{kind}] broadcast failed: #{e.class} #{e.message}")

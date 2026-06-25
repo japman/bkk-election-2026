@@ -31,7 +31,10 @@ class ResultsSnapshot
           stats: { eligible_voters: st&.eligible_voters.to_i, turnout: st&.turnout.to_i,
                    bad_ballots: st&.bad_ballots.to_i, no_vote: st&.no_vote.to_i },
           results: ranked.map { |r| { number: r.candidate.number, votes: r.votes } } }
-      end
+      end,
+      trend: @election.trend_points.order(:captured_at).last(60).map { |p|
+        { t: p.captured_at.iso8601, votes: p.votes }
+      }
     }
   end
 

@@ -41,6 +41,7 @@ class Admin::ZoneResultsController < ApplicationController
                          alert: "บันทึกไม่สำเร็จ: #{e.record.errors.full_messages.join(', ')}"
     end
     if changed
+      election.record_trend_point!
       ResultsBroadcaster.new(election).broadcast_all
       SnapshotPublisher.new(election).publish
     end
