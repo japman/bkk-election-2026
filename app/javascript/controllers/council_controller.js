@@ -4,7 +4,45 @@ const cdnBase = () => document.querySelector('meta[name="snapshot-cdn"]')?.conte
 
 export default class extends Controller {
   static targets = ["panel", "name", "counted", "rows"]
+  static values = { interval: { type: Number, default: 15000 } }
 
+  connect() {
+    this.refresh()
+    this.timer = setInterval(() => this.refresh(), this.intervalValue)
+  }
+
+  disconnect() { clearInterval(this.timer) }
+
+  // poll สด: repaint แผนที่ + ที่นั่ง + header โดยไม่ reload (ผ่าน CloudFront)
+  async refresh() {
+    try {
+      const res = await fetch(`${cdnBase()}/results-council.json`)
+      if (!res.ok) return
+      this.repaint(await res.json())
+    } catch { /* เครือข่ายล้ม — รอบหน้าลองใหม่ */ }
+  }
+
+  repaint(data) {
+    (data.districts || []).forEach(d => {
+      const tile = document.querySelector(`.tile[data-zone-code="${d.code}"]`)
+      if (tile && d.winner) tile.style.setProperty("--c", d.winner.color)
+    })
+    const seats = document.getElementById("council-seats")
+    if (seats && data.seats) {
+      seats.innerHTML = data.seats.map(s =>
+        `<span class="seat-row"><i style="background:${s.color}"></i>` +
+        `<span class="party-name">${s.party}</span>` +
+        `<b>${s.seats}</b><span class="seat-unit">ที่นั่ง</span></span>`
+      ).join("")
+    }
+    const set = (key, text) => document.querySelectorAll(`[data-live="${key}"]`).forEach(el => {
+      if (el.textContent !== text) el.textContent = text
+    })
+    if (data.counted_percent != null) set("counted-pct", `${data.counted_percent}%`)
+    if (data.updated_at) set("updated-at", `${new Date(data.updated_at).toLocaleTimeString("th-TH")} น.`)
+  }
+
+  // คลิกเขต → ดึงรายละเอียดผู้สมัครในเขตนั้น (เดิม)
   async show(e) {
     const code = e.currentTarget.dataset.zoneCode
     const res = await fetch(`${cdnBase()}/results-council.json`, { cache: "no-store" })
@@ -26,7 +64,5 @@ export default class extends Controller {
     this.panelTarget.classList.add("show")
   }
 
-  hide() {
-    this.panelTarget.classList.remove("show")
-  }
+  hide() { this.panelTarget.classList.remove("show") }
 }
