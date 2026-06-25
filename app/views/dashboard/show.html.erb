@@ -2,8 +2,11 @@
   <%= render "site_header" %>
   <main class="wrap"><p>ยังไม่เปิดรายงานผล</p></main>
 <% else %>
-  <%= turbo_stream_from "results" %>
-  <div data-controller="live-flash fallback">
+  <% if @election.live_streaming? %>
+    <%= turbo_stream_from "results" %>
+  <% end %>
+  <div data-controller="live-flash fallback"
+       data-fallback-stale-after-value="<%= @election.live_streaming? ? 15000 : 0 %>">
     <%= render "site_header", election: @election %>
     <%= render "hero", election: @election %>
     <main class="wrap">

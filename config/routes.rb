@@ -16,6 +16,7 @@ Rails.application.routes.draw do
     resources :zone_results, only: %i[edit update]
     resource :election, only: [] do
       patch :toggle_mode
+      patch :toggle_streaming
     end
     resources :revisions, only: :index
   end

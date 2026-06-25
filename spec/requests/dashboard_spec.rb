@@ -29,4 +29,18 @@ RSpec.describe "Dashboard", type: :request do
     get "/"
     expect(response.body).to include("theme-toggle")
   end
+
+  it "subscribes to the results stream when live streaming is on (default)" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response.body).to include("turbo-cable-stream-source")
+  end
+
+  it "drops the stream and polls immediately when live streaming is off" do
+    e = build_election(zones: 1, candidates: 1)
+    e.update!(live_streaming: false)
+    get "/"
+    expect(response.body).not_to include("turbo-cable-stream-source")
+    expect(response.body).to include('data-fallback-stale-after-value="0"')
+  end
 end

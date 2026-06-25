@@ -51,6 +51,14 @@ RSpec.describe "Admin panel", type: :request do
       }.to change { election.reload.data_mode }.from("api").to("manual")
     end
 
+    it "toggles live streaming on and off" do
+      expect(election.reload.live_streaming).to be(true)
+      patch toggle_streaming_admin_election_path
+      expect(election.reload.live_streaming).to be(false)
+      patch toggle_streaming_admin_election_path
+      expect(election.reload.live_streaming).to be(true)
+    end
+
     it "lists recent revisions" do
       ResultWriter.new(zone, source: "api").apply!({ 1 => 123 })
       get admin_revisions_path

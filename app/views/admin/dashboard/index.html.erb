@@ -17,6 +17,20 @@
   </section>
 
   <section class="admin-card">
+    <div class="mode-line">
+      <span>Live WebSocket:</span>
+      <span class="mode-pill <%= @election.live_streaming? ? "api" : "manual" %>">
+        <span class="dot"></span>
+        <%= @election.live_streaming? ? "ON — push สด (ปกติ)" : "OFF — โหมด peak (ทุกคน poll CDN)" %>
+      </span>
+      <%= button_to @election.live_streaming? ? "ปิด WS (โหมด peak)" : "เปิด WS",
+            toggle_streaming_admin_election_path, method: :patch,
+            class: "btn #{@election.live_streaming? ? 'btn-ghost' : 'btn-primary'} btn-sm",
+            data: { turbo_confirm: "ยืนยันสลับโหมด Live WS? มีผลกับ visitor ใหม่ภายใน ~5 วิ" } %>
+    </div>
+  </section>
+
+  <section class="admin-card">
     <h2>กรอก/แก้คะแนนรายเขต</h2>
     <table class="admin-table">
       <thead><tr>
