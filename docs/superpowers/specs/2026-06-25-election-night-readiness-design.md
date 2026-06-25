@@ -88,7 +88,7 @@ Cloudflare ไม่ cache `text/html` เองแม้ header เป็น pu
   - Edge TTL: **Respect origin** (origin ส่ง max-age=5 แล้ว) หรือ Override = 5s
   - Browser TTL: Respect origin
 - **Rule "Bypass dynamic" (ลำดับก่อนหน้า):** เงื่อนไข path เริ่มด้วย `/admin`, `/session`, `/cable`, `/up`, หรือ มี cookie `session_id` (admin ที่ login) → **Bypass cache**
-- (ทางเลือก) ผมร่าง Cloudflare API payload ให้ ถ้ามี API token (Zone > Cache Rules edit)
+- **ตั้งเองใน CF dashboard (manual)** — plan จะให้ตารางค่าเป๊ะทุกช่อง (path, eligibility, TTL, bypass) ไว้กรอก ไม่ใช้ CF API
 - **เกณฑ์ผ่าน:** `curl -sI .../` ครั้งที่ 2 → `cf-cache-status: HIT`; `/admin` → `DYNAMIC`
 
 ### A4. ผลที่ได้
@@ -134,22 +134,44 @@ end
 
 ---
 
-## 6. Component C — Governor hybrid + kill-switch
+## 6. Component C — Governor hybrid + kill-switch (flip สดผ่าน admin)
 
-**เป้า:** ปกติ WS (สดทันที); peak ปิด WS ได้ → ทุกคนตกไป CDN poll (ไม่จำกัดคน)
+**เป้า:** ปกติ WS (สดทันที); peak กดปิด WS จากหน้า admin ได้ทันทีโดยไม่ต้อง restart → ทุกคนตกไป CDN poll (ไม่จำกัดคน)
 
-- เพิ่ม config flag: `config.x.disable_turbo_stream = ENV["DISABLE_TURBO_STREAM"].present?` (ใน `production.rb` หรือ initializer)
+### C1. ที่เก็บ setting แบบ persist (ไม่ใช้ ENV, ไม่ใช้ cache ที่ evict ได้)
+ใช้ DB row จริง (กันหาย/กัน evict ตอน peak ซึ่งเป็นช่วงที่พึ่งมันที่สุด):
+- migration: `create_table :settings do |t| t.string :key, null: false; t.string :value; t.timestamps end` + unique index บน `key`
+- `app/models/setting.rb`:
+  ```ruby
+  class Setting < ApplicationRecord
+    def self.get(k)        = find_by(key: k)&.value
+    def self.set(k, v)     = find_or_initialize_by(key: k).update!(value: v.to_s)
+    def self.streaming_enabled? = get("live_streaming") != "false"   # default = เปิด (WS)
+  end
+  ```
+
+### C2. ปุ่ม toggle ในหน้า admin
+- route (ใน `namespace :admin`): `post "live_streaming/toggle" => "settings#toggle_streaming"` (หรือเพิ่มใน controller admin ที่มีอยู่)
+- `Admin::SettingsController#toggle_streaming` (authenticated, CSRF ปกติ): `Setting.set("live_streaming", !Setting.streaming_enabled?)` → redirect กลับ admin dashboard พร้อม flash
+- ใน `app/views/admin/dashboard/index.html.erb`: แสดงสถานะ + ปุ่ม
+  > "Live WS: **ON** — [ปิด WS (โหมด peak)]" / "Live WS: **OFF** — [เปิด WS]"
+
+### C3. View gate
 - `app/views/dashboard/show.html.erb`:
   ```erb
-  <% unless Rails.configuration.x.disable_turbo_stream %>
+  <% if Setting.streaming_enabled? %>
     <%= turbo_stream_from "results" %>
   <% end %>
   ```
-  และเมื่อ disable → ส่ง flag ให้ fallback poll ทันที (ไม่รอ 15วิ) เช่น set `data-fallback-stale-after-value="0"` บน `data-controller="live-flash fallback"`
-- เปิด kill-switch: ตั้ง `DISABLE_TURBO_STREAM=1` แล้ว restart (`kamal env push` + `kamal app boot`) — clients ที่โหลดใหม่จะไม่ subscribe, fallback poller (มีอยู่แล้ว, poll `results.json` ผ่าน CDN) รับช่วง
-- **หมายเหตุ:** เมื่อ A (edge-cache) ทำงาน HTML cache 5วิ → การ flip flag จะถึง client ที่โหลดใหม่ภายใน ~5วิ
-- **(ทางเลือกอนาคต, ไม่อยู่ใน scope นี้):** hot-toggle ผ่าน `Rails.cache` เพื่อ flip โดยไม่ restart
-- **เกณฑ์ผ่าน:** ตั้ง flag → reload `/` → ไม่มี WS ไป `/cable` (DevTools), คะแนนยังอัปเดตผ่าน poll
+  และเมื่อปิด → ให้ fallback poll ทันที (ไม่รอ 15วิ): set `data-fallback-stale-after-value="0"` บน `data-controller="live-flash fallback"` เมื่อ `!Setting.streaming_enabled?`
+- fallback poller (มีอยู่แล้ว, poll `results.json` ผ่าน CDN) รับช่วงอัตโนมัติ
+
+### C4. ปฏิสัมพันธ์กับ edge-cache (A)
+- HTML governor ถูก cache 5วิ → ค่า `streaming_enabled?` ถูก bake ใน HTML ที่ cache → การ flip จะถึง visitor ที่โหลดใหม่ภายใน **~5วิ** (ไม่ต้อง purge CF; edge TTL พาไปเอง). client ที่โหลดค้างอยู่จะเปลี่ยนเมื่อ reload
+- query `Setting` 1 ครั้งต่อ render; edge-cache จำกัด render เหลือ ~1/5วิ → ภาระ DB แทบ 0
+
+### C5. เกณฑ์ผ่าน
+กดปิดใน admin → ภายใน ~5วิ โหลด `/` ใหม่ไม่มี WS ไป `/cable` (DevTools), คะแนนยังอัปเดตผ่าน poll; กดเปิด → WS กลับมา
 
 ---
 
@@ -171,7 +193,7 @@ end
 ## 8. ลำดับ & ความเป็นอิสระ
 - **A** (edge-cache) — เลเวอเรจสูงสุด, ทำก่อน. โค้ดน้อย (2 controller + layout) + CF rule
 - **B** (council live) — อิสระจาก A; DRY seat logic + JS poller
-- **C** (kill-switch) — อิสระ; flag + view
+- **C** (kill-switch) — อิสระ; Setting model + migration + admin toggle + view gate
 - **D** — เอกสาร/ops, ไม่มีโค้ดนอกจาก env วันงาน
 
 ทุก component ทดสอบ/ship แยกกันได้
@@ -179,7 +201,7 @@ end
 ## 9. Verification (รวม)
 1. `curl -sI .../` + `/council` → `cache-control: public, max-age=5`, ไม่มี `set-cookie`; ครั้งที่ 2 → `cf-cache-status: HIT`
 2. `curl -sI .../admin` → ไม่ HIT (bypass)
-3. WS ยัง 101 (governor ปกติ); ตั้ง kill-switch → ไม่มี `/cable`
+3. WS ยัง 101 (governor ปกติ); กดปิดใน admin → ภายใน ~5วิ โหลดใหม่ไม่มี `/cable`; กดเปิด → กลับมา
 4. แก้คะแนน สก → ไทล์+ที่นั่งอัปเดตใน ~15วิ ไม่ reload, request ไป CloudFront
 5. seat: server-render = JSON `seats` = JS-render (อิสระรวมก้อนเดียว สีเทา)
 6. โหลดทดสอบ (เช่น `oha`/`k6`) ยิง `/` หลายพัน rps → origin CPU แทบไม่ขึ้น (CF เสิร์ฟ), `/results.json` ผ่าน CloudFront
