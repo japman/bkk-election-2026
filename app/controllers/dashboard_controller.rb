@@ -3,5 +3,7 @@ class DashboardController < ApplicationController
 
   def show
     @election = Election.current
+    @no_session = true
+    expires_in 5.seconds, public: true, "stale-while-revalidate": 30
   end
 end

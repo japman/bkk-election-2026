@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Dailynews Election Bkk2026">
     <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
+    <%= csrf_meta_tags unless @no_session %>
     <%= csp_meta_tag %>
     <meta name="snapshot-cdn" content="<%= ENV['SNAPSHOT_CDN_URL'] %>">
 
