@@ -10,6 +10,7 @@ RSpec.describe "Public page edge-caching", type: :request do
       cc = response.headers["Cache-Control"].to_s
       expect(cc).to include("public")
       expect(cc).to include("max-age=5")
+      expect(cc).to include("stale-while-revalidate=30")
       expect(response.headers["Set-Cookie"].to_s).not_to include("_dailynews_election_bkk2026_session")
     end
 

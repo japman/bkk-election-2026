@@ -19,6 +19,7 @@ export default class extends Controller {
     this.onStream = () => { this.lastStream = Date.now() }
     document.addEventListener("turbo:before-stream-render", this.onStream)
     this.timer = setInterval(() => this.maybePoll(), this.intervalValue)
+    this.maybePoll()
   }
 
   disconnect() {

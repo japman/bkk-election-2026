@@ -13,6 +13,8 @@
 
 ## ถ้า origin/RAM ตึงระหว่างพีค
 - เข้า Admin > กด "ปิด WS (โหมด peak)" → visitor ใหม่เลิกต่อ WebSocket ภายใน ~5วิ, ทุกคน poll CDN แทน (ภาระ origin O(1))
+- หมายเหตุ: WebSocket ที่ต่ออยู่เดิมจะทยอยหลุดภายใน ~5วิ (edge-cache TTL) ไม่ใช่ทันที; หน้าที่โหลดใหม่หลังปิดจะเริ่ม poll CDN ทันที
+- ตรวจ (manual): หลังปิด WS แล้ว reload `/` → DevTools Network เห็น poll `results.json` รอบแรกเกือบทันที (ไม่รอ ~10วิ)
 - กลับมากด "เปิด WS" เมื่อโหลดลด
 
 ## หลังจบงาน
