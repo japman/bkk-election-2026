@@ -1,6 +1,7 @@
 class Election < ApplicationRecord
   has_many :candidates, dependent: :destroy
   has_many :zones, dependent: :destroy
+  has_many :trend_points, dependent: :destroy
 
   enum :data_mode, { api: "api", manual: "manual" }, default: "api"
 
@@ -43,6 +44,17 @@ class Election < ApplicationRecord
   end
 
   # สรุปที่นั่ง สก: รวมตามชื่อพรรค (อิสระหลายเบอร์รวมก้อนเดียว), สีเทาเมื่อหลายสี
+  KEEP_TREND_POINTS = 300
+
+  # บันทึกคะแนนรวมของผู้สมัครทุกคน ณ ขณะนี้เป็น 1 จุดในกราฟเทรนด์ (governor)
+  def record_trend_point!
+    votes = leaderboard.to_h { |c| [c.number.to_s, c.total_votes.to_i] }
+    point = trend_points.create!(captured_at: Time.current, votes: votes)
+    stale = trend_points.order(id: :desc).offset(KEEP_TREND_POINTS).pluck(:id)
+    trend_points.where(id: stale).delete_all if stale.any?
+    point
+  end
+
   def council_seat_breakdown
     winners = zones.includes(vote_results: :candidate)
                    .filter_map { |z| z.vote_results.max_by(&:votes)&.candidate }

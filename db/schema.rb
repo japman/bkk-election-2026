@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_061229) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_25_154122) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,6 +66,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_061229) do
     t.index ["user_id"], name: "index_sessions_on_user_id"
   end
 
+  create_table "trend_points", force: :cascade do |t|
+    t.datetime "captured_at", null: false
+    t.datetime "created_at", null: false
+    t.bigint "election_id", null: false
+    t.datetime "updated_at", null: false
+    t.jsonb "votes", default: {}, null: false
+    t.index ["election_id", "captured_at"], name: "index_trend_points_on_election_id_and_captured_at"
+    t.index ["election_id"], name: "index_trend_points_on_election_id"
+  end
+
   create_table "users", force: :cascade do |t|
     t.datetime "created_at", null: false
     t.string "email_address", null: false
@@ -114,6 +124,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_061229) do
   add_foreign_key "candidates", "elections"
   add_foreign_key "candidates", "zones"
   add_foreign_key "sessions", "users"
+  add_foreign_key "trend_points", "elections"
   add_foreign_key "vote_results", "candidates"
   add_foreign_key "vote_results", "zones"
   add_foreign_key "zone_stats", "zones"
