@@ -1,4 +1,4 @@
-<% items = News::Fetcher.latest(limit: 3) %>
+<% items = News::Fetcher.latest(limit: 5) %>
 <section class="card sec-news" id="news" aria-label="ข่าวจาก Dailynews">
   <div class="card-head">
     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z"/><path d="M17 8h3v9a2 2 0 0 1-2 2h-1M8 9h5M8 13h5M8 17h3"/></svg>
@@ -10,14 +10,12 @@
     <% else %>
       <% items.each do |item| %>
         <a class="news-item" href="<%= item.url %>" target="_blank" rel="noopener">
-          <div class="news-thumb"></div>
-          <div>
-            <h3><%= item.title %></h3>
-            <time><%= item.published_at&.strftime("%d/%m/%Y • %H:%M น.") %></time>
-          </div>
+          <h3><%= item.title %></h3>
+          <% if item.excerpt.present? %><p><%= item.excerpt %></p><% end %>
+          <time><%= item.published_at&.strftime("%d/%m/%Y • %H:%M น.") %></time>
         </a>
       <% end %>
     <% end %>
   </div>
-  <a class="news-more" href="https://www.dailynews.co.th" target="_blank" rel="noopener">อ่านข่าวเลือกตั้งทั้งหมด →</a>
+  <a class="news-more" href="https://www.dailynews.co.th/news/special/election-bangkok-69/" target="_blank" rel="noopener">อ่านข่าวเลือกตั้งทั้งหมด →</a>
 </section>

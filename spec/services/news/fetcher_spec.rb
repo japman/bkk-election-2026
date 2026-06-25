@@ -17,4 +17,11 @@ RSpec.describe News::Fetcher do
     allow(described_class).to receive(:fetch_xml).and_raise(SocketError)
     expect(described_class.latest).to eq([])
   end
+
+  it "includes a plain-text excerpt from the description" do
+    allow(described_class).to receive(:fetch_xml)
+      .and_return(Rails.root.join("spec/fixtures/news/feed.xml").read)
+    item = described_class.latest(limit: 1).first
+    expect(item.excerpt).to eq("สรุปผลคะแนนเขตเลือกตั้งล่าสุด พร้อมบรรยากาศการนับคะแนนทั่วกรุงเทพมหานคร")
+  end
 end
