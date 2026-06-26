@@ -22,6 +22,7 @@ Rails.application.routes.draw do
   end
 
   get "council" => "council#show"
+  get "news" => "dashboard#news", as: :news
 
   # Defines the root path route ("/")
   root "dashboard#show"

@@ -59,4 +59,28 @@ RSpec.describe "Dashboard", type: :request do
     expect(response.body).not_to include("map-zoom")
     expect(response.body).to include('class="map-grid"')
   end
+
+  it "does not fetch news on the main results page (lazy frame)" do
+    build_election(zones: 1, candidates: 1)
+    expect(News::Fetcher).not_to receive(:latest)
+    get "/"
+    expect(response.body).to include('id="news_panel"')
+    expect(response.body).to include('src="/news"')
+    expect(response.body).to include('loading="lazy"')
+    expect(response.body).to include("กำลังโหลดข่าว")
+  end
+
+  it "renders the news frame at /news" do
+    get "/news"
+    expect(response).to have_http_status(:ok)
+    expect(response.body).to include('turbo-frame id="news_panel"')
+    expect(response.body).to include("เกาะติดจาก Dailynews")
+  end
+
+  it "keeps the results page up even if the news source fails (news is isolated in the frame)" do
+    allow(News::Fetcher).to receive(:latest).and_raise(SocketError)
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response).to have_http_status(:ok)
+  end
 end

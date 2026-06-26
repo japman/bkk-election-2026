@@ -244,6 +244,7 @@ svg{display:block}
 .chart-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-top:8px}
 .chart-legend i{display:inline-block;width:14px;height:4px;border-radius:2px;margin-right:6px;vertical-align:2px}
 
+turbo-frame{display:block}
 /* ============ News ============ */
 .news-list{display:grid;gap:12px;padding:14px 16px 16px}
 .news-item{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;

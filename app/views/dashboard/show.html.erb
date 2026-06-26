@@ -13,7 +13,15 @@
       <%= render "leaderboard", election: @election %>
       <%= render "map", election: @election %>
       <%= render "stats", election: @election %>
-      <%= render "news" %>
+      <%= turbo_frame_tag "news_panel", src: news_path, loading: "lazy", class: "sec-news" do %>
+        <section class="card">
+          <div class="card-head">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z"/><path d="M17 8h3v9a2 2 0 0 1-2 2h-1M8 9h5M8 13h5M8 17h3"/></svg>
+            <h2>เกาะติดจาก Dailynews</h2>
+          </div>
+          <p style="padding: 14px 16px; color: var(--muted)">กำลังโหลดข่าว…</p>
+        </section>
+      <% end %>
     </main>
   </div>
   <footer>ผลคะแนนอย่างไม่เป็นทางการ — รวบรวมโดยทีมข่าวเดลินิวส์</footer>
