@@ -19,6 +19,19 @@
       })()
     </script>
 
+    <%# Cookie consent (Consentrix CMP) — โหลดก่อน GA เสมอ (sync script, วางไว้บน gtag) %>
+    <script src="https://cdn-consentrix.odds.team/cookie-script.js" data-scope="1e09f949-8733-41a1-9878-317ae027f6ef"></script>
+
+    <%# Google Analytics (gtag.js) %>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VVDDLK9W0E"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-VVDDLK9W0E');
+    </script>
+
     <%= yield :head %>
 
     <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
