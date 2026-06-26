@@ -9,7 +9,7 @@
       <p style="padding: 14px 16px; color: var(--muted)">ติดตามข่าวเลือกตั้งทั้งหมดได้ที่ dailynews.co.th</p>
     <% else %>
       <% items.each do |item| %>
-        <a class="news-item" href="<%= item.url %>" target="_blank" rel="noopener">
+        <a class="news-item" href="<%= item.url %>" target="_blank" rel="noopener" data-turbo="false">
           <% if item.image_url.present? %>
             <img class="news-thumb" src="<%= item.image_url %>" alt="" loading="lazy">
           <% end %>
@@ -22,5 +22,5 @@
       <% end %>
     <% end %>
   </div>
-  <a class="news-more" href="https://www.dailynews.co.th/news/special/election-bangkok-69/" target="_blank" rel="noopener">อ่านข่าวเลือกตั้งทั้งหมด →</a>
+  <a class="news-more" href="https://www.dailynews.co.th/news/special/election-bangkok-69/" target="_blank" rel="noopener" data-turbo="false">อ่านข่าวเลือกตั้งทั้งหมด →</a>
 </section>
