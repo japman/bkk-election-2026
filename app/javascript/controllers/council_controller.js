@@ -39,7 +39,7 @@ export default class extends Controller {
       if (el.textContent !== text) el.textContent = text
     })
     if (data.counted_percent != null) set("counted-pct", `${data.counted_percent}%`)
-    if (data.updated_at) set("updated-at", `${new Date(data.updated_at).toLocaleTimeString("th-TH")} น.`)
+    if (data.updated_at) set("updated-at", `${new Date(data.updated_at).toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok", hour12: false })} น.`)
   }
 
   // คลิกเขต → ดึงรายละเอียดผู้สมัครในเขตนั้น (เดิม)

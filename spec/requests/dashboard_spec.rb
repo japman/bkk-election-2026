@@ -2,6 +2,7 @@ require "rails_helper"
 
 RSpec.describe "Dashboard", type: :request do
   include ElectionSetup
+  include ActiveSupport::Testing::TimeHelpers
 
   before { allow(News::Fetcher).to receive(:latest).and_return([]) }
 
@@ -42,5 +43,13 @@ RSpec.describe "Dashboard", type: :request do
     get "/"
     expect(response.body).not_to include("turbo-cable-stream-source")
     expect(response.body).to include('data-fallback-stale-after-value="0"')
+  end
+
+  it "renders the updated time in UTC+7 (Bangkok)" do
+    build_election(zones: 1, candidates: 1)
+    travel_to(Time.utc(2026, 6, 26, 0, 35, 0)) do
+      get "/"
+      expect(response.body).to include("07:35")
+    end
   end
 end

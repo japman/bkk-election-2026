@@ -45,7 +45,7 @@ export default class extends Controller {
       set(`pct-${c.number}`, `${c.percent}%`)
     })
     set("counted-pct", `${data.counted_percent}%`)
-    set("updated-at", `${new Date(data.updated_at).toLocaleTimeString("th-TH")} น.`)
+    set("updated-at", `${new Date(data.updated_at).toLocaleTimeString("th-TH", { timeZone: "Asia/Bangkok", hour12: false })} น.`)
     data.zones.forEach(z => {
       const tile = document.querySelector(`[data-zone-code="${z.code}"]`)
       const cand = data.candidates.find(c => c.number === z.leader_number)
