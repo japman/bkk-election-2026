@@ -31,7 +31,8 @@ module News
     # ดึงเฉพาะ URL ของ og:image — อ่าน ~40KB แรกของ <head> เท่านั้น (ไม่โหลดไฟล์รูป)
     def self.og_image(url)
       head = URI.open(url, read_timeout: 4, open_timeout: 4) { |f| f.read(40_000) }
-      head&.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i)&.captures&.first
+      meta = head&.match(/<meta\b[^>]+property=["']og:image["'][^>]*>/i)&.to_s
+      meta&.match(/content=["']([^"']+)["']/i)&.captures&.first
     rescue StandardError
       nil
     end

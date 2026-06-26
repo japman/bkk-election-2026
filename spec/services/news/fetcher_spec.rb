@@ -39,6 +39,15 @@ RSpec.describe News::Fetcher do
     expect(items.map(&:image_url)).to eq(["https://img.example/a.jpg", "https://img.example/b.jpg"])
   end
 
+  it "extracts og:image regardless of attribute order (content before property)" do
+    allow(described_class).to receive(:fetch_xml)
+      .and_return(Rails.root.join("spec/fixtures/news/feed.xml").read)
+    stub_request(:get, "https://www.dailynews.co.th/news/1/")
+      .to_return(body: '<html><head><meta content="https://img.example/c.jpg" property="og:image" /></head></html>')
+    stub_request(:get, "https://www.dailynews.co.th/news/2/").to_return(body: "<html></html>")
+    expect(described_class.latest(limit: 2).first.image_url).to eq("https://img.example/c.jpg")
+  end
+
   it "leaves image_url nil when the article fetch fails (items still returned)" do
     allow(described_class).to receive(:fetch_xml)
       .and_return(Rails.root.join("spec/fixtures/news/feed.xml").read)
