@@ -1,7 +1,10 @@
 require "rails_helper"
 
 RSpec.describe News::Fetcher do
-  before { Rails.cache.clear }
+  before do
+    Rails.cache.clear
+    stub_request(:get, %r{www\.dailynews\.co\.th/news/\d+/?\z}).to_return(body: "<html></html>")
+  end
 
   it "parses feed items" do
     allow(described_class).to receive(:fetch_xml)
@@ -23,5 +26,25 @@ RSpec.describe News::Fetcher do
       .and_return(Rails.root.join("spec/fixtures/news/feed.xml").read)
     item = described_class.latest(limit: 1).first
     expect(item.excerpt).to eq("สรุปผลคะแนนเขตเลือกตั้งล่าสุด พร้อมบรรยากาศการนับคะแนนทั่วกรุงเทพมหานคร")
+  end
+
+  it "extracts the og:image URL for each item (link only)" do
+    allow(described_class).to receive(:fetch_xml)
+      .and_return(Rails.root.join("spec/fixtures/news/feed.xml").read)
+    stub_request(:get, "https://www.dailynews.co.th/news/1/")
+      .to_return(body: '<html><head><meta property="og:image" content="https://img.example/a.jpg" /></head></html>')
+    stub_request(:get, "https://www.dailynews.co.th/news/2/")
+      .to_return(body: '<html><head><meta property="og:image" content="https://img.example/b.jpg" /></head></html>')
+    items = described_class.latest(limit: 2)
+    expect(items.map(&:image_url)).to eq(["https://img.example/a.jpg", "https://img.example/b.jpg"])
+  end
+
+  it "leaves image_url nil when the article fetch fails (items still returned)" do
+    allow(described_class).to receive(:fetch_xml)
+      .and_return(Rails.root.join("spec/fixtures/news/feed.xml").read)
+    stub_request(:get, %r{www\.dailynews\.co\.th/news/\d+/?\z}).to_timeout
+    items = described_class.latest(limit: 2)
+    expect(items.size).to eq(2)
+    expect(items.map(&:image_url)).to eq([nil, nil])
   end
 end

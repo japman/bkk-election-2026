@@ -256,9 +256,11 @@ svg{display:block}
 
 /* ============ News ============ */
 .news-list{display:grid;gap:12px;padding:14px 16px 16px}
-.news-item{display:block;border:1px solid var(--line);border-radius:14px;padding:12px 14px;background:#fff;
-  transition:transform .2s,box-shadow .2s}
+.news-item{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:14px;
+  padding:12px 14px;background:#fff;transition:transform .2s,box-shadow .2s}
 .news-item:hover{transform:translateY(-1px);box-shadow:var(--shadow-md)}
+.news-thumb{width:72px;height:72px;flex:none;object-fit:cover;border-radius:10px;background:var(--line)}
+.news-body{min-width:0}
 .news-item h3{font-family:var(--font-display);font-weight:600;font-size:14.5px;line-height:1.45}
 .news-item p{margin:5px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5;
   display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

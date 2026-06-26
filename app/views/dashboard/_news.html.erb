@@ -10,9 +10,14 @@
     <% else %>
       <% items.each do |item| %>
         <a class="news-item" href="<%= item.url %>" target="_blank" rel="noopener">
-          <h3><%= item.title %></h3>
-          <% if item.excerpt.present? %><p><%= item.excerpt %></p><% end %>
-          <time><%= item.published_at&.strftime("%d/%m/%Y • %H:%M น.") %></time>
+          <% if item.image_url.present? %>
+            <img class="news-thumb" src="<%= item.image_url %>" alt="" loading="lazy">
+          <% end %>
+          <div class="news-body">
+            <h3><%= item.title %></h3>
+            <% if item.excerpt.present? %><p><%= item.excerpt %></p><% end %>
+            <time><%= item.published_at&.strftime("%d/%m/%Y • %H:%M น.") %></time>
+          </div>
         </a>
       <% end %>
     <% end %>
