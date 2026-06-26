@@ -1,8 +1,6 @@
 <% zones = election.zones.includes(:zone_stat, vote_results: :candidate).sort_by(&:code) %>
 <div id="zone-map">
-  <div class="map-zoom" data-controller="map-zoom">
-    <div class="map-zoom-vp" data-map-zoom-target="vp">
-      <div class="map-grid" data-map-zoom-target="canvas">
+  <div class="map-grid">
     <% zones.each do |z| %>
       <% leader = z.leading_candidate %>
       <button class="tile" data-zone-code="<%= z.code %>" data-action="zone-detail#show"
@@ -11,13 +9,6 @@
         <span><%= z.name %></span>
       </button>
     <% end %>
-      </div>
-    </div>
-    <div class="map-zoom-ctl">
-      <button type="button" data-action="map-zoom#zoomOut" aria-label="ซูมออก">−</button>
-      <button type="button" data-action="map-zoom#reset" aria-label="รีเซ็ตการซูม">⟲</button>
-      <button type="button" data-action="map-zoom#zoomIn" aria-label="ซูมเข้า">+</button>
-    </div>
   </div>
   <div class="legend">
     <% election.leaderboard.first(3).each do |c| %>

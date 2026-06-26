@@ -22,6 +22,13 @@ RSpec.describe "Council dashboard", type: :request do
     expect(response.body).to include('data-council-target="panel"')
   end
 
+  it "renders the council map without zoom controls" do
+    Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
+    get "/council"
+    expect(response.body).not_to include("map-zoom")
+    expect(response.body).to include('class="map-grid"')
+  end
+
   it "renders a single grey row for merged independents" do
     e = Election.create!(name: "C", election_date: Date.new(2026, 6, 28), kind: "council")
     e.candidates.create!(number: 1, name: "A", party: "อิสระ", color: "#aa0000")

@@ -52,4 +52,11 @@ RSpec.describe "Dashboard", type: :request do
       expect(response.body).to include("07:35")
     end
   end
+
+  it "renders the map without zoom controls" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response.body).not_to include("map-zoom")
+    expect(response.body).to include('class="map-grid"')
+  end
 end
