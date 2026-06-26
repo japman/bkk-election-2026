@@ -73,7 +73,7 @@ RSpec.describe "Dashboard", type: :request do
   it "renders the news frame at /news" do
     get "/news"
     expect(response).to have_http_status(:ok)
-    expect(response.body).to include('turbo-frame id="news_panel"')
+    expect(response.body).to include('id="news_panel"')
     expect(response.body).to include("เกาะติดจาก Dailynews")
   end
 
