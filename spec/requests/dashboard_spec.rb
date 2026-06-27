@@ -102,4 +102,24 @@ RSpec.describe "Dashboard", type: :request do
     expect(response.body).to include('data-countdown-clicks-to-close-value="10"')
     expect(response.body).to include("08:00")
   end
+
+  it "renders SEO description, Open Graph, and Twitter Card meta" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response.body).to include('<meta name="description"')
+    expect(response.body).to include('property="og:title"')
+    expect(response.body).to include('property="og:description"')
+    expect(response.body).to include('property="og:image"')
+    expect(response.body).to include("og-cover.jpg")
+    expect(response.body).to include('property="og:image:width" content="1280"')
+    expect(response.body).to include('name="twitter:card" content="summary_large_image"')
+    expect(response.body).to include('rel="canonical"')
+  end
+
+  it "uses the Dailynews image logo in the header (not the text logo)" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response.body).to include("logo-dn-pink-04")
+    expect(response.body).not_to include("DAILY<span>NEWS</span>")
+  end
 end

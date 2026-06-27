@@ -62,7 +62,8 @@ svg{display:block}
   max-width:1280px;margin:0 auto;padding:6px 20px 10px;
   display:flex;align-items:center;gap:14px;flex-wrap:wrap;
 }
-.brand{display:flex;align-items:baseline;gap:10px;white-space:nowrap}
+.brand{display:flex;align-items:center;gap:10px;white-space:nowrap}
+.brand .logo-img{height:30px;width:auto;display:block}
 .brand .logo{
   font-family:var(--font-display);font-weight:800;font-size:21px;
   color:var(--dn-pink);letter-spacing:.5px;
@@ -203,7 +204,7 @@ svg{display:block}
   /* header เล็กลงบน mobile: tabs+LIVE+theme แถวบน, brand+progress แถวล่าง */
   .site-head .topbar-row{padding:6px 12px 0}
   .site-head .inner{padding:6px 12px 8px;gap:6px 10px}
-  .brand .logo{font-size:17px}
+  .brand .logo-img{height:22px}
   .brand .event{font-size:12px;padding-left:8px}
   .head-status{margin-left:0;width:100%;gap:10px}
   .counted{min-width:0;flex:1}

@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <html lang="th">
   <head>
-    <title><%= content_for(:title) || "Dailynews Election Bkk2026" %></title>
+    <% seo_title = content_for(:title) || "ผลเลือกตั้งผู้ว่าฯ กทม. และ ส.ก. 2569 เรียลไทม์ | เดลินิวส์" %>
+    <% seo_description = "เกาะติดผลนับคะแนนเลือกตั้งผู้ว่าฯ กทม. และ ส.ก. 2569 แบบเรียลไทม์ รายเขต พร้อมแผนที่ กราฟ และสรุปที่นั่ง โดยทีมข่าวเดลินิวส์" %>
+    <% og_base = (ENV["PUBLIC_ORIGIN"].presence || request.base_url).to_s.chomp("/") %>
+    <% og_image_url = "#{og_base}/og-cover.jpg" %>
+    <title><%= seo_title %></title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="application-name" content="Dailynews Election Bkk2026">
@@ -9,6 +13,25 @@
     <%= csrf_meta_tags unless @no_session %>
     <%= csp_meta_tag %>
     <meta name="snapshot-cdn" content="<%= ENV['SNAPSHOT_CDN_URL'] %>">
+
+    <%# ---- SEO / Open Graph / Twitter ---- %>
+    <meta name="description" content="<%= seo_description %>">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#E6007E">
+    <link rel="canonical" href="<%= request.original_url %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="เดลินิวส์">
+    <meta property="og:title" content="<%= seo_title %>">
+    <meta property="og:description" content="<%= seo_description %>">
+    <meta property="og:url" content="<%= request.original_url %>">
+    <meta property="og:image" content="<%= og_image_url %>">
+    <meta property="og:image:width" content="1280">
+    <meta property="og:image:height" content="720">
+    <meta property="og:locale" content="th_TH">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= seo_title %>">
+    <meta name="twitter:description" content="<%= seo_description %>">
+    <meta name="twitter:image" content="<%= og_image_url %>">
 
     <script>
       // ตั้งธีมก่อน paint แรก กันจอวาบ — ค่าที่ user เลือก > ค่าตามระบบ
