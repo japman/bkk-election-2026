@@ -32,7 +32,9 @@ module News
     def self.og_image(url)
       head = URI.open(url, read_timeout: 4, open_timeout: 4) { |f| f.read(40_000) }
       meta = head&.match(/<meta\b[^>]+property=["']og:image["'][^>]*>/i)&.to_s
-      meta&.match(/content=["']([^"']+)["']/i)&.captures&.first
+      src  = meta&.match(/content=["']([^"']+)["']/i)&.captures&.first
+      # f.read คืน ASCII-8BIT — บังคับเป็น UTF-8 + scrub กัน Encoding::CompatibilityError ใน ERB
+      src && src.dup.force_encoding("UTF-8").scrub.presence
     rescue StandardError
       nil
     end

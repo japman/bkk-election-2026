@@ -56,4 +56,18 @@ RSpec.describe News::Fetcher do
     expect(items.size).to eq(2)
     expect(items.map(&:image_url)).to eq([nil, nil])
   end
+
+  # HTTP body อ่านด้วย f.read(n) ได้ ASCII-8BIT — ถ้า og:image URL มี byte non-ASCII (path ไทย)
+  # ต้อง force เป็น UTF-8 ไม่งั้น ERB (UTF-8) จะ raise Encoding::CompatibilityError → /news 500
+  it "returns a valid UTF-8 image_url even when the page bytes are ASCII-8BIT (Thai in URL)" do
+    binary_head = %(<html><head><meta property="og:image" content="https://img.example/ภาพข่าว.jpg"></head>).b
+    reader = double("io", read: binary_head)
+    allow(URI).to receive(:open) { |*_args, &blk| blk.call(reader) }
+
+    result = described_class.og_image("https://www.dailynews.co.th/news/1/")
+
+    expect(result).to eq("https://img.example/ภาพข่าว.jpg")
+    expect(result.encoding.name).to eq("UTF-8")
+    expect(result).to be_valid_encoding
+  end
 end
