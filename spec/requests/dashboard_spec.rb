@@ -83,4 +83,23 @@ RSpec.describe "Dashboard", type: :request do
     get "/"
     expect(response).to have_http_status(:ok)
   end
+
+  it "renders the credit footer with consentrix + odt links" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response.body).to include('href="https://consentrix.odds.team"')
+    expect(response.body).to include("consentrix.odds.team")
+    expect(response.body).to include('href="https://odt.co.th"')
+    expect(response.body).to include("odt.co.th")
+  end
+
+  it "renders the countdown splash hidden by default, JS-gated to 08:00 28 Jun" do
+    build_election(zones: 1, candidates: 1)
+    get "/"
+    expect(response.body).to include('id="countdown"')
+    expect(response.body).to include('data-controller="countdown"')
+    expect(response.body).to include('data-countdown-target-value="2026-06-28T08:00:00+07:00"')
+    expect(response.body).to include('data-countdown-clicks-to-close-value="10"')
+    expect(response.body).to include("08:00")
+  end
 end

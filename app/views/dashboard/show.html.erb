@@ -1,3 +1,36 @@
+<%# Countdown splash — บังหน้าผลจนถึง 08:00 28 มิ.ย. (หรือคลิก 10 ครั้งเพื่อ preview) %>
+<div id="countdown" class="countdown-splash"
+     data-controller="countdown"
+     data-countdown-target-value="2026-06-28T08:00:00+07:00"
+     data-countdown-clicks-to-close-value="10"
+     role="dialog" aria-label="นับถอยหลังสู่การประกาศผลเลือกตั้ง" hidden>
+  <div class="cd-inner">
+    <p class="cd-kicker">เลือกตั้งผู้ว่าราชการกรุงเทพมหานคร 2569</p>
+    <h1 class="cd-title">ระบบรายงานผลเริ่ม<br><span class="cd-time">08:00 น. 28 มิถุนายน 2569</span></h1>
+    <div class="cd-timer num" aria-hidden="true">
+      <div class="cd-unit"><span class="cd-num" data-countdown-target="days">--</span><span class="cd-lbl">วัน</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-unit"><span class="cd-num" data-countdown-target="hours">--</span><span class="cd-lbl">ชม.</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-unit"><span class="cd-num" data-countdown-target="minutes">--</span><span class="cd-lbl">นาที</span></div>
+      <span class="cd-sep">:</span>
+      <div class="cd-unit"><span class="cd-num" data-countdown-target="seconds">--</span><span class="cd-lbl">วินาที</span></div>
+    </div>
+    <p class="cd-foot">โดยทีมข่าวเดลินิวส์</p>
+  </div>
+</div>
+<script>
+  // anti-flash: โชว์ splash ก่อน paint เฉพาะเมื่อยังไม่ถึงเวลา และยังไม่เคยปิดในเครื่องนี้
+  (function () {
+    var el = document.getElementById("countdown");
+    if (!el) return;
+    var target = new Date("2026-06-28T08:00:00+07:00").getTime();
+    var dismissed = false;
+    try { dismissed = localStorage.getItem("bkk2026-countdown-dismissed") === "1"; } catch (e) {}
+    if (Date.now() < target && !dismissed) el.hidden = false;
+  })();
+</script>
+
 <% if @election.nil? %>
   <%= render "site_header" %>
   <main class="wrap"><p>ยังไม่เปิดรายงานผล</p></main>
@@ -24,5 +57,12 @@
       <% end %>
     </main>
   </div>
-  <footer>ผลคะแนนอย่างไม่เป็นทางการ — รวบรวมโดยทีมข่าวเดลินิวส์</footer>
+  <footer>
+    ผลคะแนนอย่างไม่เป็นทางการ — รวบรวมโดยทีมข่าวเดลินิวส์
+    <div class="credits">
+      Consent by <a href="https://consentrix.odds.team" target="_blank" rel="noopener">consentrix.odds.team</a>
+      <span aria-hidden="true">·</span>
+      Developed by <a href="https://odt.co.th" target="_blank" rel="noopener">odt.co.th</a>
+    </div>
+  </footer>
 <% end %>

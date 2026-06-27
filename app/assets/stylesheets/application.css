@@ -538,3 +538,44 @@ html[data-theme="dark"] .flash-msg.alert{
 
 /* ============ Council zone-detail scroll cap ============ */
 .zone-detail [data-council-target="rows"]{max-height:46vh;overflow-y:auto}
+
+/* ============ Countdown splash ============ */
+.countdown-splash{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;padding:24px;
+  text-align:center;cursor:default;
+  background:
+    radial-gradient(900px 480px at 50% -8%, rgba(230,0,126,.16), transparent 60%),
+    radial-gradient(760px 480px at 50% 112%, rgba(14,122,61,.12), transparent 62%),
+    rgba(250,248,251,.97);
+  backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  transition:opacity .3s ease;
+}
+.countdown-splash[hidden]{display:none}
+.countdown-splash.is-closing{opacity:0}
+html[data-theme="dark"] .countdown-splash{
+  background:
+    radial-gradient(900px 480px at 50% -8%, rgba(255,45,156,.20), transparent 60%),
+    radial-gradient(760px 480px at 50% 112%, rgba(46,227,138,.14), transparent 62%),
+    rgba(10,13,29,.975);
+}
+.cd-inner{max-width:560px;width:100%}
+.cd-kicker{font-family:var(--font-display);font-weight:600;font-size:14px;letter-spacing:.02em;color:var(--dn-pink-deep);margin-bottom:10px}
+.cd-title{font-family:var(--font-display);font-weight:700;font-size:clamp(22px,5vw,34px);line-height:1.32;color:var(--ink)}
+.cd-title .cd-time{color:var(--green-deep)}
+.cd-timer{display:flex;align-items:center;justify-content:center;gap:8px;margin:26px 0 16px}
+.cd-unit{display:flex;flex-direction:column;align-items:center;min-width:66px;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 10px;box-shadow:var(--shadow-sm)}
+.cd-num{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,7vw,40px);line-height:1;color:var(--ink);font-variant-numeric:tabular-nums}
+.cd-lbl{font-size:11.5px;color:var(--muted);margin-top:6px}
+.cd-sep{font-family:var(--font-display);font-weight:700;font-size:clamp(20px,5vw,30px);color:var(--muted)}
+.cd-foot{font-size:13px;color:var(--muted);margin-top:4px}
+@media (max-width:420px){
+  .cd-unit{min-width:52px;padding:10px 5px}
+  .cd-timer{gap:5px}
+}
+
+/* ============ Credit footer ============ */
+.credits{margin-top:6px;font-size:12px;color:var(--muted)}
+.credits a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+.credits a:hover{color:var(--dn-pink-deep)}
