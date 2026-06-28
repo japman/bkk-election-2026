@@ -47,3 +47,4 @@
 .kamal/*.crt
 .kamal/*.key
 .kamal/*.pem
+loadtest/results/
