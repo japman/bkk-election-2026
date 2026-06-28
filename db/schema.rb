@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_25_154122) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_28_120000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -24,6 +24,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_25_154122) do
     t.string "party"
     t.string "party_logo_url"
     t.string "photo_url"
+    t.integer "total_votes", default: 0, null: false
     t.datetime "updated_at", null: false
     t.bigint "zone_id"
     t.index ["election_id", "number"], name: "idx_candidates_election_number_governor", unique: true, where: "(zone_id IS NULL)"

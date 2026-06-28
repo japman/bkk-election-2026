@@ -13,18 +13,27 @@ class Election < ApplicationRecord
   def self.council = council_elections.first
   def self.current = governor
 
-  # ผู้สมัครทุกคน + total_votes (SUM สดจาก 50 เขต — ไม่เก็บซ้ำ ตาม spec §6)
+  # อันดับผู้สมัคร — ใช้ total_votes ที่ ECT คำนวณให้ (candidates endpoint) เมื่อมีค่าแล้ว
+  # ไม่งั้น fallback เป็นผลรวมราย 50 เขต (ก่อน ingest candidate-total ครั้งแรก / ใน test)
   def leaderboard
-    @leaderboard ||= candidates
-      .left_joins(:vote_results)
-      .select("candidates.*, COALESCE(SUM(vote_results.votes), 0) AS total_votes")
-      .group("candidates.id")
-      .order("total_votes DESC, candidates.number ASC")
-      .to_a
+    @leaderboard ||=
+      if candidates.where("total_votes > 0").exists?
+        candidates.order(total_votes: :desc, number: :asc).to_a
+      else
+        # fallback (ก่อน ingest candidate-total ครั้งแรก / ใน test): รวมราย 50 เขต
+        # set total_votes ใน memory (ไม่ save) เลี่ยงชนชื่อคอลัมน์จริงตอน ORDER BY
+        sums = VoteResult.joins(:candidate).where(candidates: { election_id: id })
+                         .group(:candidate_id).sum(:votes)
+        cands = candidates.to_a
+        cands.each { |c| c.total_votes = sums[c.id].to_i }
+        cands.sort_by { |c| [ -c.total_votes, c.number ] }
+      end
   end
 
+  # ยอดรวมทั้งหมด — ผลรวม total_votes ของผู้สมัคร (ECT) เมื่อมี, ไม่งั้นผลรวมราย 50 เขต
   def total_votes
-    VoteResult.joins(:zone).where(zones: { election_id: id }).sum(:votes)
+    col = candidates.sum(:total_votes)
+    col.positive? ? col : VoteResult.joins(:zone).where(zones: { election_id: id }).sum(:votes)
   end
 
   # เฉลี่ยทั้ง 50 เขต — เขตที่ยังไม่รายงานนับเป็น 0

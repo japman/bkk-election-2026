@@ -21,6 +21,7 @@ RSpec.describe IngestPollJob do
                                   external_id: c["id"])
     end
     allow(Ingest::Client).to receive(:fetch_results).and_return(area_payload)
+    allow(Ingest::Client).to receive(:fetch_candidates).and_return(candidates_fixture)
     allow(SnapshotPublisher).to receive(:new).and_return(publisher)
     allow(ResultsBroadcaster).to receive(:new)
       .and_return(instance_double(ResultsBroadcaster, broadcast_all: true))
@@ -114,5 +115,30 @@ RSpec.describe IngestPollJob do
 
   it "records a trend point on a governor poll that changes results" do
     expect { described_class.perform_now }.to change { election.trend_points.count }.by(1)
+  end
+
+  it "stores each candidate's authoritative total from the candidates endpoint" do
+    described_class.perform_now
+    c7 = candidates_fixture.dig("data", "candidates").find { |c| c["number"] == 7 }
+    expect(election.candidates.find_by(number: 7).total_votes).to eq(c7["totalVotes"])
+  end
+
+  it "follows the API downward on a later poll (allow_decrease for source api)" do
+    cid = candidates_fixture.dig("data", "candidates").find { |c| c["number"] == 7 }["id"]
+    area = lambda do |votes|
+      { "success" => true, "data" => { "areas" => [
+        { "area_number" => 46, "results" => [ { "candidate_id" => cid, "votes" => votes } ],
+          "metadata" => { "total_eligible_voters" => 100, "total_votes" => votes,
+                          "invalid_votes" => 0, "no_votes" => 0, "coverage_percentage" => 50.0 } } ] },
+        "source" => { "selected" => "realtime" } }
+    end
+    allow(Ingest::Client).to receive(:fetch_results).and_return(area.call(500), area.call(300))
+    cand7 = election.candidates.find_by(number: 7)
+
+    described_class.perform_now
+    expect(election.zones.find_by(code: "46").vote_results.find_by(candidate: cand7).votes).to eq(500)
+
+    described_class.perform_now
+    expect(election.zones.find_by(code: "46").vote_results.find_by(candidate: cand7).votes).to eq(300)
   end
 end

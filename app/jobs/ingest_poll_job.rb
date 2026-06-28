@@ -40,10 +40,21 @@ class IngestPollJob < ApplicationJob
     election.zones.find_each do |zone|
       data = parsed.data[zone.code] or next
       begin
-        changed |= ResultWriter.new(zone, source: "api").apply!(data[:votes], stats: data[:stats])
+        # source api: ตามค่าล่าสุดของ ECT ตรงๆ (allow_decrease) — feed realtime แกว่งขึ้นลงได้
+        changed |= ResultWriter.new(zone, source: "api", allow_decrease: true).apply!(data[:votes], stats: data[:stats])
       rescue ResultWriter::StaleVotesError => e
         Rails.logger.error("[ingest:#{kind}] #{e.message} — zone skipped")
       end
+    end
+
+    # ยอดรวมรายคน (ภาพรวม) — ใช้ totalVotes ที่ ECT คำนวณให้ตรงจาก candidates endpoint
+    # กัน drift จากการ SUM 50 เขตเอง (anti-rollback/เขตขาด)
+    by_ext = election.candidates.where.not(external_id: nil).index_by(&:external_id)
+    fetch_candidate_totals(SLUGS.fetch(kind)).each do |external_id, total|
+      cand = by_ext[external_id]
+      next if cand.nil? || cand.total_votes == total
+      cand.update_column(:total_votes, total)
+      changed = true
     end
 
     if changed && kind == "governor"
@@ -57,5 +68,24 @@ class IngestPollJob < ApplicationJob
 
     SnapshotPublisher.new(election).publish
     SnapshotArchiveJob.perform_later(election.id, Time.current.iso8601)
+  end
+
+  private
+
+  # external_id => totalVotes จาก ECT candidates endpoint (วน pagination, ทนต่อ fetch ล้ม)
+  def fetch_candidate_totals(slug)
+    totals = {}
+    page = 1
+    loop do
+      data = Ingest::Client.fetch_candidates(slug, page: page)["data"] || {}
+      (data["candidates"] || []).each { |c| totals[c["id"]] = c["totalVotes"].to_i if c["id"] }
+      break unless data.dig("pagination", "hasMore")
+      page += 1
+      break if page > 10
+    end
+    totals
+  rescue Ingest::Client::FetchError => e
+    Rails.logger.error("[ingest] candidate totals fetch failed: #{e.message}")
+    {}
   end
 end
