@@ -13,7 +13,23 @@ RSpec.describe News::Fetcher do
     expect(items.size).to eq(2)
     expect(items.first.title).to eq("ข่าวเลือกตั้ง 1")
     expect(items.first.url).to eq("https://www.dailynews.co.th/news/1/")
-    expect(items.first.published_at).to be_a(Time)
+    expect(items.first.published_at).to be_a(ActiveSupport::TimeWithZone)
+    expect(items.first.published_at.utc_offset).to eq(7 * 3600)
+  end
+
+  it "converts a GMT pubDate to Bangkok time (UTC+7) for display" do
+    xml = <<~XML
+      <?xml version="1.0" encoding="UTF-8"?>
+      <rss version="2.0"><channel>
+        <item><title>t</title><link>https://www.dailynews.co.th/news/9/</link>
+          <description>d</description>
+          <pubDate>Sat, 28 Jun 2026 03:35:00 +0000</pubDate></item>
+      </channel></rss>
+    XML
+    allow(described_class).to receive(:fetch_xml).and_return(xml)
+    t = described_class.latest(limit: 1).first.published_at
+    expect(t.utc_offset).to eq(7 * 3600)
+    expect(t.strftime("%d/%m/%Y • %H:%M")).to eq("28/06/2026 • 10:35")
   end
 
   it "returns [] when the feed is unreachable" do

@@ -12,7 +12,8 @@ module News
       Rails.cache.fetch("news/latest/#{limit}", expires_in: 5.minutes) do
         feed = RSS::Parser.parse(fetch_xml, false)
         items = feed.items.first(limit).map do |i|
-          Item.new(i.title, i.link, i.pubDate,
+          # RSS pubDate ของ WordPress เป็น GMT — แปลงเป็น Time.zone (Bangkok) ให้ view โชว์ +7
+          Item.new(i.title, i.link, i.pubDate&.in_time_zone,
                    ActionController::Base.helpers.strip_tags(i.description.to_s).squish.truncate(140), nil)
         end
         images = items.map { |it| Thread.new { og_image(it.url) } }.map(&:value)
