@@ -36,8 +36,10 @@ class Election < ApplicationRecord
     col.positive? ? col : VoteResult.joins(:zone).where(zones: { election_id: id }).sum(:votes)
   end
 
-  # เฉลี่ยทั้ง 50 เขต — เขตที่ยังไม่รายงานนับเป็น 0
+  # % นับคะแนน — ใช้ค่า ECT ตรง (stationsReported/totalStations) เมื่อมี
+  # ไม่งั้น fallback เป็นเฉลี่ยทั้ง 50 เขต (เขตที่ยังไม่รายงานนับเป็น 0)
   def counted_percent
+    return coverage_percent.round(1) if coverage_percent.to_f.positive?
     return 0.to_d if zones.none?
     (ZoneStat.where(zone: zones).sum(:counted_percent) / zones.count).round(1)
   end

@@ -47,13 +47,18 @@ class IngestPollJob < ApplicationJob
       end
     end
 
-    # ยอดรวมรายคน (ภาพรวม) — ใช้ totalVotes ที่ ECT คำนวณให้ตรงจาก candidates endpoint
-    # กัน drift จากการ SUM 50 เขตเอง (anti-rollback/เขตขาด)
+    # ยอดรวมรายคน (ภาพรวม) + % นับคะแนน — จาก ECT candidates endpoint ตรงๆ
+    # กัน drift จากการ SUM/เฉลี่ย 50 เขตเอง (anti-rollback/เขตขาด/ถ่วงน้ำหนักผิด)
     by_ext = election.candidates.where.not(external_id: nil).index_by(&:external_id)
-    fetch_candidate_totals(SLUGS.fetch(kind)).each do |external_id, total|
+    totals, coverage_pct = fetch_candidate_data(SLUGS.fetch(kind))
+    totals.each do |external_id, total|
       cand = by_ext[external_id]
       next if cand.nil? || cand.total_votes == total
       cand.update_column(:total_votes, total)
+      changed = true
+    end
+    if coverage_pct && election.coverage_percent.to_f != coverage_pct.to_f
+      election.update_column(:coverage_percent, coverage_pct)
       changed = true
     end
 
@@ -72,20 +77,23 @@ class IngestPollJob < ApplicationJob
 
   private
 
-  # external_id => totalVotes จาก ECT candidates endpoint (วน pagination, ทนต่อ fetch ล้ม)
-  def fetch_candidate_totals(slug)
+  # [ {external_id => totalVotes}, coverage_percentage ] จาก ECT candidates endpoint
+  # (วน pagination; coverage อยู่หน้าแรก; ทนต่อ fetch ล้ม)
+  def fetch_candidate_data(slug)
     totals = {}
+    coverage = nil
     page = 1
     loop do
       data = Ingest::Client.fetch_candidates(slug, page: page)["data"] || {}
+      coverage ||= data.dig("coverage", "percentage")
       (data["candidates"] || []).each { |c| totals[c["id"]] = c["totalVotes"].to_i if c["id"] }
       break unless data.dig("pagination", "hasMore")
       page += 1
       break if page > 10
     end
-    totals
+    [ totals, coverage ]
   rescue Ingest::Client::FetchError => e
-    Rails.logger.error("[ingest] candidate totals fetch failed: #{e.message}")
-    {}
+    Rails.logger.error("[ingest] candidate data fetch failed: #{e.message}")
+    [ {}, nil ]
   end
 end

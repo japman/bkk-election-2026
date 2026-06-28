@@ -123,6 +123,13 @@ RSpec.describe IngestPollJob do
     expect(election.candidates.find_by(number: 7).total_votes).to eq(c7["totalVotes"])
   end
 
+  it "stores the ECT coverage percentage on the election (real counting %)" do
+    described_class.perform_now
+    expect(election.reload.coverage_percent.to_f)
+      .to eq(candidates_fixture.dig("data", "coverage", "percentage"))
+    expect(election.counted_percent).to eq(85.1) # 85.06 rounded to 1 dp
+  end
+
   it "follows the API downward on a later poll (allow_decrease for source api)" do
     cid = candidates_fixture.dig("data", "candidates").find { |c| c["number"] == 7 }["id"]
     area = lambda do |votes|
