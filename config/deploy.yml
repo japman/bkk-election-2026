@@ -4,7 +4,7 @@ image: japman/bkk-election-2026  # Kamal จะเติม registry.server (ghc
 servers:
   web:
     hosts:
-      - 159.138.241.201
+      - 159.138.255.93
     # FD limit (nofile) สำหรับ 6000 WS ตั้งใน bin/docker-entrypoint (ulimit -n) — เชื่อถือได้กว่า Kamal options
 
 proxy:
@@ -49,7 +49,7 @@ env:
 accessories:
   db:
     image: postgres:17
-    host: 159.138.241.201
+    host: 159.138.255.93
     # ⚠️ sized for 16 GB box — deploy หลัง resize เท่านั้น (shared_buffers 2GB จะ OOM บน box 3.4GB)
     cmd: postgres -c shared_buffers=2GB -c effective_cache_size=6GB -c work_mem=8MB -c maintenance_work_mem=256MB
     env:
@@ -62,7 +62,7 @@ accessories:
       - data:/var/lib/postgresql/data
   redis:
     image: redis:7
-    host: 159.138.241.201
+    host: 159.138.255.93
     # ActionCable pub/sub (ephemeral) — ปิด AOF ลด disk I/O + maxmemory safety cap
     cmd: redis-server --appendonly no --maxmemory 1gb --maxmemory-policy allkeys-lru
     directories:
