@@ -28,6 +28,10 @@
 threads_count = ENV.fetch("RAILS_MAX_THREADS", 3)
 threads threads_count, threads_count
 
+# Clustered mode เมื่อตั้ง WEB_CONCURRENCY (prod). ไม่ตั้ง = 0 = single mode (dev/test/CI ไม่กระทบ).
+# ไม่ใช้ preload_app! — เลี่ยงความซับซ้อน fork + multi-DB; solid_queue plugin รันใน master ครั้งเดียว
+workers ENV.fetch("WEB_CONCURRENCY", 0).to_i
+
 # Specifies the `port` that Puma will listen on to receive requests; default is 3000.
 port ENV.fetch("PORT", 3000)
 

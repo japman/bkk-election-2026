@@ -1,5 +1,8 @@
 #!/bin/bash -e
 
+# 6000 WS = 6000 FD — ดัน soft nofile ขึ้น (default 1024 ตันที่ ~1000 conn; hard=524288 อนุญาต)
+ulimit -n 65536 2>/dev/null || true
+
 # If running the rails server then create or migrate existing database
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
   ./bin/rails db:prepare
