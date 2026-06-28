@@ -1,41 +1,47 @@
 module Ingest
   # The single binding point to the ECT API payload shape.
-  # Policy: any error rejects the whole payload and returns errors for the caller to log.
+  #
+  # Policy: results stream in incrementally during live counting, so a partial
+  # payload is normal — write every VALID area present and never reject the whole
+  # batch for per-area problems. `errors` is reserved for FATAL structural faults
+  # (not a real results payload); `warnings` collects non-fatal, per-area notes
+  # (missing/unexpected/duplicate areas, bad rows) for the caller to log.
   class EctAdapter
-    Result = Struct.new(:data, :errors) do
+    Result = Struct.new(:data, :errors, :warnings) do
       def ok? = errors.empty?
     end
 
     class << self
       def parse(payload, expected_zone_codes:, candidate_map:)
         unless payload.is_a?(Hash) && payload["success"] == true
-          return Result.new({}, [ "payload: success was not true" ])
+          return Result.new({}, [ "payload: success was not true" ], [])
         end
         areas = payload.dig("data", "areas")
-        return Result.new({}, [ "payload: data.areas must be an array" ]) unless areas.is_a?(Array)
+        return Result.new({}, [ "payload: data.areas must be an array" ], []) unless areas.is_a?(Array)
 
-        errors = []
         data = {}
-        codes = areas.map { |a| area_code(a) }
-        missing = expected_zone_codes - codes.compact
-        errors << "missing areas: #{missing.join(', ')}" if missing.any?
-        unexpected = codes.compact - expected_zone_codes
-        errors << "unexpected areas: #{unexpected.join(', ')}" if unexpected.any?
-        errors << "area with missing area_number" if codes.any?(&:nil?)
-        dupes = codes.compact.tally.select { |_, n| n > 1 }.keys
-        errors << "duplicate areas: #{dupes.join(', ')}" if dupes.any?
-
+        warnings = []
         areas.each do |a|
           code = area_code(a)
-          next if code.nil?
+          if code.nil?
+            warnings << "area with missing area_number"
+            next
+          end
+          unless expected_zone_codes.include?(code)
+            warnings << "unexpected area #{code}"
+            next
+          end
+          warnings << "duplicate area #{code}" if data.key?(code)
           area_errors = validate_area(a, candidate_map)
           if area_errors.any?
-            errors.concat(area_errors.map { |m| "area #{code}: #{m}" })
+            warnings.concat(area_errors.map { |m| "area #{code}: #{m}" })
           else
             data[code] = normalize(a, candidate_map)
           end
         end
-        Result.new(data, errors)
+        missing = expected_zone_codes - data.keys
+        warnings << "missing areas: #{missing.join(', ')}" if missing.any?
+        Result.new(data, [], warnings)
       end
 
       private

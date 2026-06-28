@@ -32,6 +32,9 @@ class IngestPollJob < ApplicationJob
       Rails.logger.error("[ingest:#{kind}] rejected payload: #{parsed.errors.join('; ')}")
       return
     end
+    if parsed.warnings&.any?
+      Rails.logger.info("[ingest:#{kind}] partial: #{parsed.warnings.size} note(s); #{parsed.warnings.first(3).join(' | ')}")
+    end
 
     changed = false
     election.zones.find_each do |zone|
