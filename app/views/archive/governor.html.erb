@@ -1,0 +1,28 @@
+<%= render "dashboard/hero", election: @election %>
+<main class="wrap">
+  <%= render "dashboard/leaderboard", election: @election %>
+
+  <%# map card: reuse dashboard/_map_grid (50 tiles) + zone-detail panel (vanilla JS fills it) %>
+  <section class="card sec-map" data-controller="zone-detail" aria-label="แผนที่ผลรายเขต">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2Z"/><path d="M9 4v14M15 6v14"/></svg>
+      <h2>ผลนำรายเขต — 50 เขต</h2>
+      <span class="hint">แตะเขตเพื่อดูคะแนน</span>
+    </div>
+    <div class="map-body">
+      <%= render "dashboard/map_grid", election: @election %>
+      <div class="zone-detail" data-zone-detail-target="panel" aria-live="polite">
+        <div class="zd-head">
+          <h3 data-zone-detail-target="name"></h3>
+          <span class="zd-counted num" data-zone-detail-target="counted"></span>
+          <button type="button" class="zd-close" aria-label="ปิดรายละเอียดเขต">✕</button>
+        </div>
+        <div class="zd-stats" data-zone-detail-target="stats"></div>
+        <div data-zone-detail-target="rows"></div>
+      </div>
+    </div>
+  </section>
+
+  <%= render "dashboard/stats", election: @election %>
+  <%= render "archive/news_frozen", items: @news_items %>
+</main>

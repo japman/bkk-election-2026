@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="th">
+  <head>
+    <% council    = @election.kind == "council" %>
+    <% base       = @base_url.to_s.chomp("/") %>
+    <% page_url   = council ? "#{base}/council.html" : base %>
+    <% og_image   = "#{base}/assets/og-cover.jpg" %>
+    <% seo_title  = council ? "ผลเลือกตั้ง ส.ก. กทม. 2569 (อย่างไม่เป็นทางการ) | เดลินิวส์" : "ผลเลือกตั้งผู้ว่าฯ กทม. 2569 (อย่างไม่เป็นทางการ) | เดลินิวส์" %>
+    <% seo_desc   = "ผลนับคะแนนเลือกตั้งผู้ว่าฯ กทม. และ ส.ก. 2569 รายเขต พร้อมแผนที่ กราฟ และสรุปที่นั่ง (ผลอย่างไม่เป็นทางการ) โดยทีมข่าวเดลินิวส์" %>
+    <meta charset="utf-8">
+    <title><%= seo_title %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+
+    <%# ---- SEO / Open Graph / Twitter (ตรึงค่าจาก base_url — ไม่มี request) ---- %>
+    <meta name="description" content="<%= seo_desc %>">
+    <meta name="robots" content="index, follow">
+    <meta name="theme-color" content="#E6007E">
+    <link rel="canonical" href="<%= page_url %>">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="เดลินิวส์">
+    <meta property="og:title" content="<%= seo_title %>">
+    <meta property="og:description" content="<%= seo_desc %>">
+    <meta property="og:url" content="<%= page_url %>">
+    <meta property="og:image" content="<%= og_image %>">
+    <meta property="og:image:width" content="1280">
+    <meta property="og:image:height" content="720">
+    <meta property="og:locale" content="th_TH">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="<%= seo_title %>">
+    <meta name="twitter:description" content="<%= seo_desc %>">
+    <meta name="twitter:image" content="<%= og_image %>">
+
+    <script>
+      // ตั้งธีมก่อน paint แรก กันจอวาบ — ค่าที่ user เลือก > ค่าตามระบบ
+      (function () {
+        var t; try { t = localStorage.getItem("bkk2026-theme"); } catch (e) {}
+        if (!t) t = matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+        document.documentElement.dataset.theme = t;
+      })();
+    </script>
+
+    <link rel="icon" href="assets/icon.png" type="image/png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700;800&family=Anuphan:wght@400;500;600&display=swap" rel="stylesheet">
+    <style><%= raw @inline_css %></style>
+  </head>
+
+  <body>
+    <%= render "archive/header", election: @election %>
+    <%= yield %>
+    <footer>
+      ผลคะแนนอย่างไม่เป็นทางการ — รวบรวมโดยทีมข่าวเดลินิวส์
+      <div class="credits">
+        Consent by <a href="https://consentrix.odds.team" target="_blank" rel="noopener">consentrix.odds.team</a>
+        <span aria-hidden="true">·</span>
+        Developed by <a href="https://odt.co.th" target="_blank" rel="noopener">odt.co.th</a>
+      </div>
+    </footer>
+
+    <%# snapshot นิ่งฝัง inline (escape </ กัน script breakout) — vanilla JS อ่าน render รายเขต/กราฟ %>
+    <script type="application/json" id="snapshot"><%= raw @snapshot_json.to_s.gsub("</", '<\/') %></script>
+
+    <script>
+      (function () {
+        var snapEl = document.getElementById("snapshot");
+        if (!snapEl) return;
+        var data;
+        try { data = JSON.parse(snapEl.textContent); } catch (e) { return; }
+        var isCouncil = data.kind === "council" || Array.isArray(data.districts);
+
+        // ---- theme toggle (localStorage bkk2026-theme) ----
+        document.querySelectorAll("[data-theme-toggle]").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            var next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+            document.documentElement.dataset.theme = next;
+            try { localStorage.setItem("bkk2026-theme", next); } catch (e) {}
+          });
+        });
+
+        // ---- zone detail panel ----
+        var panel    = document.querySelector(".zone-detail");
+        var nameEl   = panel && panel.querySelector(".zd-head h3");
+        var countedEl = panel && panel.querySelector(".zd-counted");
+        var statsEl  = panel && panel.querySelector(".zd-stats");
+        var rowsEl   = panel && panel.querySelector('[data-zone-detail-target="rows"], [data-council-target="rows"]');
+        var nf = function (n) { return (n || 0).toLocaleString("th-TH"); };
+
+        function fillGovernor(code) {
+          var zone = (data.zones || []).find(function (z) { return z.code === code; });
+          if (!zone) return;
+          var byNumber = new Map((data.candidates || []).map(function (c) { return [c.number, c]; }));
+          var sum = zone.results.reduce(function (s, r) { return s + r.votes; }, 0);
+          if (nameEl) nameEl.textContent = "เขต" + zone.name;
+          if (countedEl) countedEl.textContent = "นับแล้ว " + zone.counted_percent + "%";
+          var s = zone.stats || {};
+          var turnoutPct = s.eligible_voters ? (s.turnout * 100 / s.eligible_voters).toFixed(1) : "0.0";
+          if (statsEl) statsEl.innerHTML =
+            "ผู้มีสิทธิ์ " + nf(s.eligible_voters) + " • มาใช้สิทธิ์ " + nf(s.turnout) +
+            " (" + turnoutPct + "%) • บัตรเสีย " + nf(s.bad_ballots) + " • ไม่ประสงค์ " + nf(s.no_vote);
+          if (rowsEl) rowsEl.innerHTML = zone.results.map(function (t) {
+            var c = byNumber.get(t.number);
+            if (!c) return "";
+            var pct = sum === 0 ? 0 : (t.votes * 100 / sum).toFixed(1);
+            return '<div class="zd-row">' +
+              (c.photo_url ? '<img class="zd-photo" src="' + c.photo_url + '" alt="" loading="lazy">' : '<i style="background:' + c.color + '"></i>') +
+              '<span class="zd-name">เบอร์ ' + c.number + ' ' + c.name + (c.party_logo_url ? ' <img class="party-logo" src="' + c.party_logo_url + '" alt="">' : "") + '</span>' +
+              '<span class="zd-v num">' + t.votes.toLocaleString("th-TH") + ' (' + pct + '%)</span>' +
+              '</div>';
+          }).join("");
+          if (panel) panel.classList.add("show");
+        }
+
+        function fillCouncil(code) {
+          var d = (data.districts || []).find(function (x) { return x.code === code; });
+          if (!d) return;
+          var sum = d.results.reduce(function (s, r) { return s + r.votes; }, 0);
+          if (nameEl) nameEl.textContent = "เขต" + d.name;
+          if (countedEl) countedEl.textContent = "นับแล้ว " + d.counted_percent + "%";
+          if (rowsEl) rowsEl.innerHTML = d.results.map(function (r, i) {
+            var pct = sum === 0 ? 0 : (r.votes * 100 / sum).toFixed(1);
+            return '<div class="zd-row ' + (i === 0 ? "winner" : "") + '">' +
+              (r.photo_url ? '<img class="zd-photo" src="' + r.photo_url + '" alt="" loading="lazy">' : '<i style="background:' + r.color + '"></i>') +
+              '<span class="zd-name">เบอร์ ' + r.number + ' ' + r.name + ' <small>' + (r.party || "") + '</small></span>' +
+              '<span class="zd-v num">' + r.votes.toLocaleString("th-TH") + ' (' + pct + '%)</span>' +
+              '</div>';
+          }).join("");
+          if (panel) panel.classList.add("show");
+        }
+
+        document.querySelectorAll(".tile[data-zone-code]").forEach(function (tile) {
+          tile.addEventListener("click", function () {
+            var code = tile.dataset.zoneCode;
+            document.querySelectorAll(".tile.sel").forEach(function (t) { t.classList.remove("sel"); });
+            tile.classList.add("sel");
+            if (isCouncil) fillCouncil(code); else fillGovernor(code);
+          });
+        });
+
+        document.querySelectorAll(".zd-close").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            if (panel) panel.classList.remove("show");
+            document.querySelectorAll(".tile.sel").forEach(function (t) { t.classList.remove("sel"); });
+          });
+        });
+
+        // ---- trend chart (governor) — วาด SVG ครั้งเดียวจาก data.trend ----
+        if (!isCouncil) {
+          var svg = document.querySelector('[data-controller="trend-chart"]') || document.querySelector(".chart-svg");
+          if (svg) drawTrend(svg);
+        }
+
+        function drawTrend(el) {
+          var W = 600, H = 200, P = 8;
+          var top3 = (data.candidates || []).slice(0, 3);
+          var trend = data.trend || [];
+          var series = top3.map(function (c) {
+            return trend.map(function (pt) { return Number((pt.votes && pt.votes[String(c.number)]) || 0); });
+          });
+          var max = Math.max.apply(null, [1].concat([].concat.apply([], series))) * 1.08;
+          var n = trend.length;
+          var path = function (pts) {
+            return pts.map(function (v, i) {
+              return (i === 0 ? "M" : "L") +
+                (P + i * (W - 2 * P) / Math.max(1, n - 1)).toFixed(1) + "," +
+                (H - P - (v / max) * (H - 2 * P)).toFixed(1);
+            }).join(" ");
+          };
+          el.innerHTML =
+            [40, 80, 120, 160].map(function (y) {
+              return '<line x1="0" y1="' + y + '" x2="' + W + '" y2="' + y + '" stroke="rgba(135,142,165,.25)" stroke-width="1"/>';
+            }).join("") +
+            top3.map(function (c, idx) {
+              var pts = series[idx];
+              if (pts.length === 0) return "";
+              var lastX = (P + (n - 1) * (W - 2 * P) / Math.max(1, n - 1)).toFixed(1);
+              var lastY = (H - P - (pts[pts.length - 1] / max) * (H - 2 * P)).toFixed(1);
+              return '<path d="' + path(pts) + ' L' + lastX + ',' + (H - P) + ' L' + P + ',' + (H - P) + ' Z" fill="' + c.color + '" opacity="0.07"/>' +
+                '<path d="' + path(pts) + '" fill="none" stroke="' + c.color + '" stroke-width="2.5" stroke-linejoin="round"/>' +
+                '<circle cx="' + lastX + '" cy="' + lastY + '" r="4" fill="' + c.color + '"/>';
+            }).join("");
+          var legend = document.getElementById("chart-legend");
+          if (legend) legend.innerHTML = top3.map(function (c) {
+            return '<span><i style="background:' + c.color + '"></i>' + c.name + '</span>';
+          }).join("");
+        }
+      })();
+    </script>
+  </body>
+</html>

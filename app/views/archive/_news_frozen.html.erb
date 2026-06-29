@@ -1,0 +1,26 @@
+<%# ข่าว frozen ตอน build-time — thumbnail เป็น absolute dailynews URL, link target=_blank %>
+<%# feed ล่ม/ว่าง → ไม่ render อะไรเลย (build ไม่พัง) %>
+<% items = local_assigns.fetch(:items, []) %>
+<% if items.present? %>
+  <section class="card sec-news" id="news" aria-label="ข่าวจาก Dailynews">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h13v14H6a2 2 0 0 1-2-2V5Z"/><path d="M17 8h3v9a2 2 0 0 1-2 2h-1M8 9h5M8 13h5M8 17h3"/></svg>
+      <h2>เกาะติดจาก Dailynews</h2>
+    </div>
+    <div class="news-list">
+      <% items.first(5).each do |item| %>
+        <a class="news-item" href="<%= item.url %>" target="_blank" rel="noopener">
+          <% if item.image_url.present? %>
+            <img class="news-thumb" src="<%= item.image_url %>" alt="" loading="lazy">
+          <% end %>
+          <div class="news-body">
+            <h3><%= item.title %></h3>
+            <% if item.excerpt.present? %><p><%= item.excerpt %></p><% end %>
+            <% if item.published_at.present? %><time><%= item.published_at.strftime("%d/%m/%Y • %H:%M น.") %></time><% end %>
+          </div>
+        </a>
+      <% end %>
+    </div>
+    <a class="news-more" href="https://www.dailynews.co.th/news/special/election-bangkok-69/" target="_blank" rel="noopener">อ่านข่าวเลือกตั้งทั้งหมด →</a>
+  </section>
+<% end %>
